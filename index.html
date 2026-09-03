@@ -107,11 +107,12 @@
 
         /* SIDEBAR SETTINGS */
         .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 2000; display: none; }
-        .sidebar { position: fixed; top: 0; right: -330px; width: 320px; height: 100%; background: #1e293b; border-left: 1px solid var(--border); z-index: 2001; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); padding: 22px; overflow-y: auto; }
+        .sidebar { position: fixed; top: 0; right: -340px; width: 330px; height: 100%; background: #1e293b; border-left: 1px solid var(--border); z-index: 2001; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); padding: 22px; overflow-y: auto; }
         .sidebar.open { right: 0; }
         .sidebar-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
         .sidebar-group { margin-bottom: 18px; }
         .sidebar-group label { display: block; font-size: 0.74rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 700; text-transform: uppercase; }
+        .sidebar-note { font-size: 0.72rem; color: #a7f3d0; background: rgba(16,185,129,0.12); padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(16,185,129,0.25); margin-bottom: 12px; line-height: 1.4; }
     </style>
 </head>
 <body>
@@ -295,17 +296,41 @@
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
     <div class="sidebar" id="sidebar">
         <div class="sidebar-head">
-            <h3 style="font-size:1.1rem; color:#fff; display:flex; align-items:center; gap:8px;"><span class="material-icons-round" style="color:var(--primary);">settings</span> API Settings</h3>
+            <h3 style="font-size:1.1rem; color:#fff; display:flex; align-items:center; gap:8px;"><span class="material-icons-round" style="color:var(--primary);">settings</span> Studio API Settings</h3>
             <button class="icon-btn" onclick="toggleSidebar()"><span class="material-icons-round">close</span></button>
         </div>
 
+        <div class="sidebar-note">
+            💡 <strong>API Quota Info:</strong><br>
+            • Youtube Data API v3: 10,000 Units/Day (~1,000 वीडियो फ़ेच प्रतिदिन)।<br>
+            • Google Gemini API: Free 15 Request/minute.
+        </div>
+
         <div class="sidebar-group">
-            <label>YouTube Worker URL</label>
+            <label>YouTube Extraction Mode</label>
+            <select id="ytEngineSelect">
+                <option value="official">🔑 Official YouTube Data API v3 (Fastest & 100% Real)</option>
+                <option value="public">🌐 Public Multi-Server Scraper (No API Key)</option>
+            </select>
+        </div>
+
+        <div class="sidebar-group">
+            <label>YouTube Data API v3 Key</label>
+            <input type="text" id="ytDataApiKey" placeholder="AIzaSy... (YouTube API Key डालें)">
+        </div>
+
+        <div class="sidebar-group">
+            <label>Google Gemini API Key (Direct No 400 Error)</label>
+            <input type="text" id="geminiApiKey" placeholder="AIzaSy... (Gemini Key डालें)">
+        </div>
+
+        <div class="sidebar-group">
+            <label>YouTube Worker URL (Fallback)</label>
             <input type="text" id="ytApiUrl">
         </div>
 
         <div class="sidebar-group">
-            <label>Gemini Worker URL</label>
+            <label>Gemini Worker URL (Fallback)</label>
             <input type="text" id="geminiApiUrl">
         </div>
 
@@ -328,9 +353,13 @@
         let competitors = JSON.parse(localStorage.getItem("aryan_competitors") || "[]");
 
         window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('ytEngineSelect').value = localStorage.getItem("yt_engine_mode") || "official";
+            document.getElementById('ytDataApiKey').value = localStorage.getItem("myYtDataApiKey") || "";
+            document.getElementById('geminiApiKey').value = localStorage.getItem("myGeminiApiKey") || "";
             document.getElementById('ytApiUrl').value = localStorage.getItem("yt_api_url") || YT_WORKER;
             document.getElementById('geminiApiUrl').value = localStorage.getItem("gemini_api_url") || GEMINI_WORKER;
             document.getElementById('rapidApiKey').value = localStorage.getItem("myRapidApiKey") || "";
+            
             updateCompBadge();
             if(competitors.length > 0) loadAllChannels();
             updateGeminiBtnLabel();
@@ -343,11 +372,14 @@
         }
 
         function saveSettings() {
+            localStorage.setItem("yt_engine_mode", document.getElementById('ytEngineSelect').value);
+            localStorage.setItem("myYtDataApiKey", document.getElementById('ytDataApiKey').value.trim());
+            localStorage.setItem("myGeminiApiKey", document.getElementById('geminiApiKey').value.trim());
             localStorage.setItem("yt_api_url", document.getElementById('ytApiUrl').value.trim());
             localStorage.setItem("gemini_api_url", document.getElementById('geminiApiUrl').value.trim());
             localStorage.setItem("myRapidApiKey", document.getElementById('rapidApiKey').value.trim());
             toggleSidebar();
-            alert("✅ सेटिंग्स सुरक्षित हो गईं!");
+            alert("✅ सभी API सेटिंग्स सुरक्षित हो गईं!");
         }
 
         const updateCompBadge = () => { document.getElementById('compCount').innerText = `${competitors.length} Channels`; };
@@ -510,7 +542,6 @@
             document.getElementById('vidUrlVal').value = `https://www.youtube.com/watch?v=${videoId}`;
             document.getElementById('origTitleVal').innerText = title;
 
-            // Reset transcript field
             document.getElementById('origScriptVal').innerText = "नीचे 'पूरा स्क्रिप्ट निकालें' बटन दबाएँ...";
 
             // Embed Player
@@ -522,59 +553,72 @@
 
             updateGeminiBtnLabel();
 
-            // FETCH REAL YOUTUBE FULL DESCRIPTION & REAL TAGS
+            // FETCH METADATA
             fetchAllVideoMetadata(videoId, title);
         }
 
-        // MULTI-ENGINE REAL YOUTUBE METADATA SCRAPER (PIPED / INVIDIOUS / WORKER API)
+        // FETCH REAL YOUTUBE METADATA (SUPPORTS OFFICIAL YOUTUBE DATA API V3 KEY)
         async function fetchAllVideoMetadata(videoId, titleFallback) {
             const tagBox = document.getElementById('origTagsVal');
             const descBox = document.getElementById('origDescVal');
 
             tagBox.innerHTML = `<em>⏳ असली टैग्स खोजे जा रहे हैं...</em>`;
-            descBox.innerHTML = `<em>⏳ असली पूरा विवरण लोड हो रहा है...</em>`;
+            descBox.innerHTML = `<em>⏳ असली विवरण लोड हो रहा है...</em>`;
 
             let realTags = [];
             let realDesc = "";
 
-            // High-Speed YouTube Data Stream Endpoints (Return 100% Real Full Description & Tags)
-            const apis = [
-                `https://pipedapi.kavin.rocks/streams/${videoId}`,
-                `https://api.piped.video/streams/${videoId}`,
-                `https://invidious.nerdvpn.de/api/v1/videos/${videoId}`,
-                `${localStorage.getItem("yt_api_url") || YT_WORKER}/?videoId=${videoId}`
-            ];
+            const engineMode = localStorage.getItem("yt_engine_mode") || "official";
+            const ytApiKey = localStorage.getItem("myYtDataApiKey") || "";
 
-            for (let url of apis) {
+            // METHOD 1: OFFICIAL YOUTUBE DATA API V3
+            if (engineMode === "official" && ytApiKey.length > 10) {
                 try {
-                    const res = await fetch(url);
+                    const apiUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${ytApiKey}`;
+                    const res = await fetch(apiUrl);
                     if (res.ok) {
-                        const data = await res.json();
-
-                        // Parse Tags
-                        if (data.tags && Array.isArray(data.tags) && data.tags.length > 0) {
-                            realTags = data.tags;
-                        } else if (data.keywords && Array.isArray(data.keywords) && data.keywords.length > 0) {
-                            realTags = data.keywords;
+                        const json = await res.json();
+                        if (json.items && json.items.length > 0) {
+                            const snippet = json.items[0].snippet;
+                            if (snippet.tags) realTags = snippet.tags;
+                            if (snippet.description) realDesc = snippet.description;
                         }
-
-                        // Parse Full Multiline Description
-                        if (data.description && typeof data.description === 'string' && data.description.trim().length > 10) {
-                            realDesc = data.description.trim();
-                        } else if (data.desc && typeof data.desc === 'string' && data.desc.trim().length > 10) {
-                            realDesc = data.desc.trim();
-                        }
-
-                        if (realDesc.length > 10) break;
                     }
                 } catch(e) {}
             }
 
-            // Populate Real Tags
+            // METHOD 2: PUBLIC PIPED & INVIDIOUS SCRAPER FALLBACK
+            if (realDesc.length === 0) {
+                const apis = [
+                    `https://pipedapi.kavin.rocks/streams/${videoId}`,
+                    `https://api.piped.video/streams/${videoId}`,
+                    `https://invidious.nerdvpn.de/api/v1/videos/${videoId}`,
+                    `${localStorage.getItem("yt_api_url") || YT_WORKER}/?videoId=${videoId}`
+                ];
+
+                for (let url of apis) {
+                    try {
+                        const res = await fetch(url);
+                        if (res.ok) {
+                            const data = await res.json();
+                            if (realTags.length === 0) {
+                                if (data.tags && Array.isArray(data.tags)) realTags = data.tags;
+                                else if (data.keywords && Array.isArray(data.keywords)) realTags = data.keywords;
+                            }
+                            if (realDesc.length === 0) {
+                                if (data.description && typeof data.description === 'string') realDesc = data.description.trim();
+                                else if (data.desc && typeof data.desc === 'string') realDesc = data.desc.trim();
+                            }
+                            if (realDesc.length > 10) break;
+                        }
+                    } catch(e) {}
+                }
+            }
+
+            // POPULATE REAL TAGS
             if (realTags.length > 0) {
                 tagBox.innerText = realTags.join(', ');
             } else {
-                // If YouTube video has no keywords set by creator
                 const words = (titleFallback || document.getElementById('origTitleVal').innerText)
                     .replace(/[^\w\s\u0900-\u097F]/gi, ' ')
                     .split(/\s+/)
@@ -582,11 +626,11 @@
                 tagBox.innerText = [...new Set(words)].slice(0, 10).join(', ');
             }
 
-            // Populate Real Full Description
-            if (realDesc.length > 10) {
+            // POPULATE REAL FULL DESCRIPTION
+            if (realDesc.length > 0) {
                 descBox.innerText = realDesc;
             } else {
-                descBox.innerText = `ओरिजिनल विवरण प्राप्त नहीं हुआ। AI शीर्षक का उपयोग करके पूरी सामग्री जनरेट करेगा।`;
+                descBox.innerText = "ओरिजिनल विवरण प्राप्त नहीं हुआ। AI शीर्षक और टैग्स का उपयोग करके सामग्री तैयार करेगा।";
             }
 
             updateGeminiBtnLabel();
@@ -671,7 +715,6 @@
             updateGeminiBtnLabel();
         }
 
-        // SAFE TEXT CLEANER FOR AI PROMPT
         function sanitizeTextForAI(str) {
             if (!str) return "";
             return str
@@ -683,14 +726,16 @@
                 .trim();
         }
 
-        // GEMINI AI MASTER GENERATOR (MULTI-PAYLOAD FALLBACK ENGINE PREVENTS STATUS 400)
+        // GEMINI AI MASTER GENERATOR (DIRECT GEMINI API SUPPORT PREVENTS 400 ERRORS)
         async function generateAiScriptMaster() {
             const rawTitle = document.getElementById('origTitleVal').innerText.trim();
             const rawChannel = document.getElementById('currentSelectedChannel').value.trim();
             const rawTags = document.getElementById('origTagsVal').innerText.trim();
             const rawDesc = document.getElementById('origDescVal').innerText.trim();
             const rawScript = document.getElementById('origScriptVal').innerText.trim();
-            const geminiUrl = localStorage.getItem("gemini_api_url") || GEMINI_WORKER;
+            
+            const userGeminiKey = localStorage.getItem("myGeminiApiKey") || "";
+            const geminiWorkerUrl = localStorage.getItem("gemini_api_url") || GEMINI_WORKER;
             const btn = document.getElementById('btnAiGen');
 
             if(!rawTitle || rawTitle.includes("वीडियो लिस्ट में से")) {
@@ -701,17 +746,14 @@
             btn.disabled = true;
             btn.innerHTML = `<span class="btn-spinner"></span> जेमिनी AI जनरेट कर रहा है...`;
 
-            // Clean input text safely
             const cleanTitle = sanitizeTextForAI(rawTitle);
             const cleanChannel = sanitizeTextForAI(rawChannel);
-            
             let cleanTags = rawTags.includes('लोड होंगे') || rawTags.includes('⏳') ? "" : sanitizeTextForAI(rawTags).substring(0, 300);
             let cleanDesc = rawDesc.includes('लोड होगा') || rawDesc.includes('⏳') ? "" : sanitizeTextForAI(rawDesc).substring(0, 1000);
             let cleanScript = rawScript.includes('नीचे') || rawScript.includes('⏳') || rawScript.includes('कोई सबटाइटल नहीं') ? "" : sanitizeTextForAI(rawScript).substring(0, 3000);
 
-            // Construct flexible prompt based on available inputs
             let promptText = `तुम एक यूट्यूब न्यूज़ एंकर और SEO विशेषज्ञ हो।\n\n`;
-            promptText += `[COMPETITOR VIDEO DATA]:\n`;
+            promptText += `[COMPETITOR DATA]:\n`;
             promptText += `- शीर्षक (Title): ${cleanTitle}\n`;
             if(cleanChannel) promptText += `- कंपीटीटर चैनल: ${cleanChannel}\n`;
             if(cleanTags) promptText += `- कंपीटीटर टैग्स (Tags): ${cleanTags}\n`;
@@ -719,14 +761,13 @@
             if(cleanScript) promptText += `- ओरिजिनल ट्रांसक्रिप्ट (Script): ${cleanScript}\n`;
 
             promptText += `\n[INSTRUCTIONS]:
-ऊपर दिए गए सभी डेटा का गहन विश्लेषण करके नीचे दिए गए 4 ब्लॉक्स में यूट्यूब कंटेंट तैयार करो:
+नीचे दिए गए 4 ब्लॉक्स में ही कंटेंट जनरेट करें:
 
-1. [NEW_TITLE]: ओरिजिनल टाइटल का मुख्य अर्थ वही रखें, केवल 1-2 शब्द बदलकर वायरल बनाएं। शुरू में 'बड़ी खबर:' जोड़ें।
-2. [NEW_SCRIPT]: कंपीटीटर के लहजे में 300-400 शब्दों की पूरी हिंदी वॉइसओवर स्क्रिप्ट लिखें। शुरुआत "नमस्कार! आप देख रहे हैं आर्यन न्यूज़ टेक..." से करें।
-3. [NEW_DESC]: पूरा हाइजैक SEO डिस्क्रिप्शन लिखें। चैनल का नाम (${cleanChannel || 'Competitor'}) बहुत स्वाभाविक रूप से शामिल करें।
+1. [NEW_TITLE]: 1-2 शब्द बदलकर वायरल बनाएं। शुरू में 'बड़ी खबर:' जोड़ें।
+2. [NEW_SCRIPT]: 300-400 शब्दों की पूरी हिंदी वॉइसओवर स्क्रिप्ट लिखें। शुरुआत "नमस्कार! आप देख रहे हैं आर्यन न्यूज़ टेक..." से करें।
+3. [NEW_DESC]: पूरा हाइजैक SEO विवरण लिखें। चैनल का नाम (${cleanChannel || 'Competitor'}) स्वाभाविक रूप से शामिल करें।
 4. [NEW_TAGS]: वायरल टैग्स कॉमा से अलग करके लिखें।
 
-कृपया केवल इन 4 ब्लॉक्स में ही उत्तर दें:
 [NEW_TITLE]
 (नया टाइटल)
 
@@ -741,30 +782,12 @@
 
             try {
                 let res = null;
-                let payloadVariants = [
-                    { prompt: promptText },
-                    { contents: [{ parts: [{ text: promptText }] }] },
-                    { text: promptText },
-                    { message: promptText }
-                ];
 
-                // Attempt fetching through different payload formats
-                for (let payload of payloadVariants) {
+                // STRATEGY 1: DIRECT GOOGLE GEMINI OFFICIAL API (IF KEY PROVIDED)
+                if (userGeminiKey.length > 10) {
                     try {
-                        res = await fetch(geminiUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
-                        });
-                        if (res && res.ok) break;
-                    } catch(e) {}
-                }
-
-                // Direct Fallback Engine if custom worker fails
-                if (!res || !res.ok) {
-                    try {
-                        const directUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyD-YourFallbackKeyPlaceHolder";
-                        res = await fetch(directUrl, {
+                        const directGeminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${userGeminiKey}`;
+                        res = await fetch(directGeminiEndpoint, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
@@ -772,9 +795,28 @@
                     } catch(e) {}
                 }
 
+                // STRATEGY 2: WORKER ENGINE FALLBACK
                 if (!res || !res.ok) {
-                    const status = res ? res.status : "No Response";
-                    throw new Error(`Gemini Server Error (${status}). कृपया सेटिंग्स में Gemini URL जांचें।`);
+                    let payloadVariants = [
+                        { prompt: promptText },
+                        { contents: [{ parts: [{ text: promptText }] }] },
+                        { text: promptText }
+                    ];
+
+                    for (let payload of payloadVariants) {
+                        try {
+                            res = await fetch(geminiWorkerUrl, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(payload)
+                            });
+                            if (res && res.ok) break;
+                        } catch(e) {}
+                    }
+                }
+
+                if (!res || !res.ok) {
+                    throw new Error(`Gemini Error (${res ? res.status : "Failed"}). कृपया सेटिंग्स (⚙️) में अपनी Google Gemini API Key डालें!`);
                 }
 
                 const data = await res.json();
@@ -851,7 +893,7 @@
             if(!content) return;
             const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
+            const a = document.append("a");
             a.href = url;
             a.download = filename;
             document.body.appendChild(a);
