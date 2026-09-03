@@ -71,12 +71,14 @@
         .player-box { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 16px; overflow: hidden; border: 2px solid var(--border); margin-bottom: 16px; display: none; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         .player-box iframe { width: 100%; height: 100%; border: none; }
 
-        /* DATA BOXES */
+        /* DATA BOXES & COUNTERS */
         .data-grid { display: flex; flex-direction: column; gap: 14px; }
         .content-card { background: var(--box-bg); border: 1.5px solid var(--border); border-radius: 14px; padding: 14px 15px; position: relative; box-shadow: inset 0 2px 6px rgba(0,0,0,0.25); }
         .content-card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .content-card-head label { font-size: 0.78rem; font-weight: 800; color: #93c5fd; text-transform: uppercase; letter-spacing: 0.6px; display: flex; align-items: center; gap: 5px; }
         .content-card-actions { display: flex; gap: 6px; align-items: center; }
+
+        .count-badge { font-size: 0.68rem; background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 8px; border-radius: 6px; font-weight: 800; display: inline-flex; align-items: center; gap: 4px; }
 
         .content-view { font-size: 0.88rem; color: #e2e8f0; line-height: 1.6; max-height: 180px; overflow-y: auto; white-space: pre-wrap; word-break: break-word; }
         .content-view.large { max-height: 280px; font-size: 0.9rem; }
@@ -86,8 +88,10 @@
         .btn-mini:active { transform: scale(0.92); }
         .btn-mini.btn-search { background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.4); }
 
-        /* TRANSCRIPT EXTRACTION BAR */
-        .transcript-control-panel { background: #141e33; border: 1.5px dashed rgba(59, 130, 246, 0.4); border-radius: 14px; padding: 14px; margin-top: 15px; }
+        /* CONTROL PANELS */
+        .control-panel-box { background: #141e33; border: 1.5px dashed rgba(59, 130, 246, 0.4); border-radius: 14px; padding: 14px; margin-top: 15px; }
+        .control-panel-box label { font-size: 0.78rem; color: #93c5fd; font-weight: bold; display: block; margin-bottom: 8px; }
+        
         .btn-extract { width: 100%; height: 50px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; border: none; border-radius: 12px; font-weight: 800; font-size: 0.96rem; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; margin-top: 10px; box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35); }
         .btn-extract:disabled { opacity: 0.65; cursor: not-allowed; }
 
@@ -96,7 +100,7 @@
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
         /* MASTER GEMINI BUTTON */
-        .btn-ai-generate { width: 100%; padding: 17px; background: linear-gradient(135deg, #8b5cf6, #d946ef); color: white; border: none; border-radius: 16px; font-weight: 800; font-size: 1.02rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 10px 30px rgba(217, 70, 239, 0.35); margin-top: 18px; text-align: center; }
+        .btn-ai-generate { width: 100%; padding: 17px; background: linear-gradient(135deg, #8b5cf6, #d946ef); color: white; border: none; border-radius: 16px; font-weight: 800; font-size: 1.02rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 10px 30px rgba(217, 70, 239, 0.35); margin-top: 12px; text-align: center; }
         .btn-ai-generate:active { transform: scale(0.97); }
 
         /* AI OUTPUTS */
@@ -165,6 +169,15 @@
                 <iframe id="ytIframe" allowfullscreen allow="autoplay; encrypted-media"></iframe>
             </div>
 
+            <!-- YOUTUBE DATA EXTRACTION ENGINE SELECTOR -->
+            <div class="control-panel-box" style="margin-top:0; margin-bottom:15px;">
+                <label>📌 YouTube Metadata Engine (Title, Tags, Description हेतु):</label>
+                <select id="ytMetadataModeSelect" onchange="saveEngineSelections()">
+                    <option value="official">🔑 Official YouTube Data API v3 (Fast & 100% Real)</option>
+                    <option value="worker">🌐 YouTube Worker URL (v7 Live Engine)</option>
+                </select>
+            </div>
+
             <div class="data-grid">
                 <!-- 1. Video URL -->
                 <div class="content-card">
@@ -179,7 +192,10 @@
                 <div class="content-card">
                     <div class="content-card-head">
                         <label><span class="material-icons-round" style="font-size:15px;">title</span> Original Title</label>
-                        <button class="btn-mini" onclick="copyText('origTitleVal', this)"><span class="material-icons-round" style="font-size:13px;">content_copy</span> Copy</button>
+                        <div class="content-card-actions">
+                            <span class="count-badge" id="titleCountBadge">0 शब्द | 0 अक्षर</span>
+                            <button class="btn-mini" onclick="copyText('origTitleVal', this)"><span class="material-icons-round" style="font-size:13px;">content_copy</span> Copy</button>
+                        </div>
                     </div>
                     <div class="content-view" id="origTitleVal" style="font-weight:700; color:#fff; font-size:0.95rem;">वीडियो लिस्ट में से किसी वीडियो पर टैप करें।</div>
                 </div>
@@ -189,7 +205,8 @@
                     <div class="content-card-head">
                         <label><span class="material-icons-round" style="font-size:15px;">tag</span> Competitor Real Tags</label>
                         <div class="content-card-actions">
-                            <button class="btn-mini btn-search" onclick="fetchAllVideoMetadata(document.getElementById('currentVideoId').value, document.getElementById('origTitleVal').innerText)"><span class="material-icons-round" style="font-size:13px;">search</span> Re-Fetch Tags</button>
+                            <span class="count-badge" id="tagsCountBadge">0 टैग्स</span>
+                            <button class="btn-mini btn-search" onclick="fetchAllVideoMetadata(document.getElementById('currentVideoId').value, document.getElementById('origTitleVal').innerText)"><span class="material-icons-round" style="font-size:13px;">search</span> Fetch Tags</button>
                             <button class="btn-mini" onclick="copyText('origTagsVal', this)"><span class="material-icons-round" style="font-size:13px;">content_copy</span> Copy</button>
                         </div>
                     </div>
@@ -201,7 +218,8 @@
                     <div class="content-card-head">
                         <label><span class="material-icons-round" style="font-size:15px;">description</span> Original Full Description</label>
                         <div class="content-card-actions">
-                            <button class="btn-mini btn-search" onclick="fetchAllVideoMetadata(document.getElementById('currentVideoId').value, document.getElementById('origTitleVal').innerText)"><span class="material-icons-round" style="font-size:13px;">search</span> Re-Fetch Desc</button>
+                            <span class="count-badge" id="descCountBadge">0 शब्द | 0 अक्षर</span>
+                            <button class="btn-mini btn-search" onclick="fetchAllVideoMetadata(document.getElementById('currentVideoId').value, document.getElementById('origTitleVal').innerText)"><span class="material-icons-round" style="font-size:13px;">search</span> Fetch Desc</button>
                             <button class="btn-mini" onclick="copyText('origDescVal', this)"><span class="material-icons-round" style="font-size:13px;">content_copy</span> Copy</button>
                         </div>
                     </div>
@@ -213,6 +231,7 @@
                     <div class="content-card-head">
                         <label style="color:#6ee7b7;"><span class="material-icons-round" style="font-size:15px;">record_voice_over</span> Original Spoken Script</label>
                         <div class="content-card-actions">
+                            <span class="count-badge" id="scriptCountBadge" style="background:rgba(16,185,129,0.25); color:#6ee7b7;">0 शब्द | 0 अक्षर</span>
                             <button class="btn-mini" onclick="downloadOrigScript()"><span class="material-icons-round" style="font-size:13px;">download</span> TXT</button>
                             <button class="btn-mini" onclick="copyText('origScriptVal', this)"><span class="material-icons-round" style="font-size:13px;">content_copy</span> Copy</button>
                         </div>
@@ -222,17 +241,24 @@
             </div>
 
             <!-- TRANSCRIPT MODEL DROPDOWN & EXTRACT BUTTON -->
-            <div class="transcript-control-panel">
-                <label style="font-size:0.78rem; color:#93c5fd; font-weight:bold; display:block; margin-bottom:8px;">🎙️ ट्रांसक्रिप्ट API मॉडल चुनें:</label>
-                <select id="transcriptModeSelect">
-                    <option value="public">🌐 Public API (Free / Auto Multi-Server)</option>
+            <div class="control-panel-box">
+                <label>🎙️ ट्रांसक्रिप्ट निष्कर्षण मॉडल चुनें (Script Extraction Engine):</label>
+                <select id="transcriptModeSelect" onchange="saveEngineSelections()">
+                    <option value="worker">🌐 YouTube Worker URL (v7 Live Subtitle Scraper)</option>
                     <option value="rapid">🚀 Premium RapidAPI (Fast Key Backup)</option>
                 </select>
                 <button class="btn-extract" id="btnExtractScript" onclick="extractTranscript()"><span class="material-icons-round">subtitles</span> पूरा स्क्रिप्ट (Transcript) निकालें</button>
             </div>
 
-            <!-- MASTER GEMINI GENERATE BUTTON -->
-            <button class="btn-ai-generate" id="btnAiGen" onclick="generateAiScriptMaster()"><span class="material-icons-round">auto_awesome</span> जेमिनी AI से कंटेंट पैकेज जनरेट करें</button>
+            <!-- GEMINI GENERATION ENGINE DROPDOWN & MASTER BUTTON -->
+            <div class="control-panel-box" style="border-color: rgba(168, 85, 247, 0.4); background:#1a1533;">
+                <label style="color:#d8b4fe;">🤖 जेमिनी AI इंजन चुनें (Script & SEO Generation Engine):</label>
+                <select id="geminiEngineSelect" onchange="saveEngineSelections()">
+                    <option value="direct">🔑 Google Gemini API Key (Direct No 400 Error)</option>
+                    <option value="worker">🌐 Gemini Worker URL (Fallback Proxy)</option>
+                </select>
+                <button class="btn-ai-generate" id="btnAiGen" onclick="generateAiScriptMaster()"><span class="material-icons-round">auto_awesome</span> जेमिनी AI से कंटेंट पैकेज जनरेट करें</button>
+            </div>
         </div>
 
         <!-- 3. AI GENERATED PACK -->
@@ -257,7 +283,7 @@
             <!-- AI Voiceover Script -->
             <div class="ai-card">
                 <div class="ai-card-head">
-                    <span><span class="material-icons-round">mic</span> 2. Voiceover Script</span>
+                    <span><span class="material-icons-round">mic</span> 2. Voiceover Script (100% Length Matched)</span>
                     <div style="display:flex; gap:6px;">
                         <button class="btn-mini" onclick="downloadAiScript()"><span class="material-icons-round" style="font-size:12px;">download</span> TXT</button>
                         <button class="btn-mini" onclick="copyText('aiScriptOut', this)"><span class="material-icons-round" style="font-size:12px;">content_copy</span> Copy</button>
@@ -301,17 +327,9 @@
         </div>
 
         <div class="sidebar-note">
-            💡 <strong>API Quota Info:</strong><br>
+            💡 <strong>API Quota Information:</strong><br>
             • Youtube Data API v3: 10,000 Units/Day (~1,000 वीडियो फ़ेच प्रतिदिन)।<br>
             • Google Gemini API: Free 15 Request/minute.
-        </div>
-
-        <div class="sidebar-group">
-            <label>YouTube Extraction Mode</label>
-            <select id="ytEngineSelect">
-                <option value="official">🔑 Official YouTube Data API v3 (Fastest & 100% Real)</option>
-                <option value="public">🌐 Public Multi-Server Scraper (No API Key)</option>
-            </select>
         </div>
 
         <div class="sidebar-group">
@@ -325,7 +343,7 @@
         </div>
 
         <div class="sidebar-group">
-            <label>YouTube Worker URL (Fallback)</label>
+            <label>YouTube Worker URL (v7 Engine)</label>
             <input type="text" id="ytApiUrl">
         </div>
 
@@ -353,7 +371,10 @@
         let competitors = JSON.parse(localStorage.getItem("aryan_competitors") || "[]");
 
         window.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('ytEngineSelect').value = localStorage.getItem("yt_engine_mode") || "official";
+            document.getElementById('ytMetadataModeSelect').value = localStorage.getItem("yt_meta_mode") || "official";
+            document.getElementById('transcriptModeSelect').value = localStorage.getItem("yt_transcript_mode") || "worker";
+            document.getElementById('geminiEngineSelect').value = localStorage.getItem("gemini_engine_mode") || "direct";
+
             document.getElementById('ytDataApiKey').value = localStorage.getItem("myYtDataApiKey") || "";
             document.getElementById('geminiApiKey').value = localStorage.getItem("myGeminiApiKey") || "";
             document.getElementById('ytApiUrl').value = localStorage.getItem("yt_api_url") || YT_WORKER;
@@ -362,6 +383,7 @@
             
             updateCompBadge();
             if(competitors.length > 0) loadAllChannels();
+            updateWordAndCharCounts();
             updateGeminiBtnLabel();
         });
 
@@ -371,8 +393,14 @@
             else { sb.classList.add('open'); ov.style.display = 'block'; }
         }
 
+        function saveEngineSelections() {
+            localStorage.setItem("yt_meta_mode", document.getElementById('ytMetadataModeSelect').value);
+            localStorage.setItem("yt_transcript_mode", document.getElementById('transcriptModeSelect').value);
+            localStorage.setItem("gemini_engine_mode", document.getElementById('geminiEngineSelect').value);
+        }
+
         function saveSettings() {
-            localStorage.setItem("yt_engine_mode", document.getElementById('ytEngineSelect').value);
+            saveEngineSelections();
             localStorage.setItem("myYtDataApiKey", document.getElementById('ytDataApiKey').value.trim());
             localStorage.setItem("myGeminiApiKey", document.getElementById('geminiApiKey').value.trim());
             localStorage.setItem("yt_api_url", document.getElementById('ytApiUrl').value.trim());
@@ -383,6 +411,46 @@
         }
 
         const updateCompBadge = () => { document.getElementById('compCount').innerText = `${competitors.length} Channels`; };
+
+        // LIVE COUNTING FUNCTION FOR TITLE, TAGS, DESC, AND TRANSCRIPT
+        function updateWordAndCharCounts() {
+            // 1. Title Count
+            const titleText = document.getElementById('origTitleVal').innerText.trim();
+            if (titleText && !titleText.includes("वीडियो लिस्ट में से")) {
+                const words = titleText.split(/\s+/).filter(Boolean).length;
+                document.getElementById('titleCountBadge').innerText = `${words} शब्द | ${titleText.length} अक्षर`;
+            } else {
+                document.getElementById('titleCountBadge').innerText = `0 शब्द | 0 अक्षर`;
+            }
+
+            // 2. Tags Count
+            const tagsText = document.getElementById('origTagsVal').innerText.trim();
+            if (tagsText && !tagsText.includes("लोड होंगे") && !tagsText.includes("⏳")) {
+                const tagList = tagsText.split(',').map(s => s.trim()).filter(Boolean);
+                document.getElementById('tagsCountBadge').innerText = `${tagList.length} टैग्स`;
+            } else {
+                document.getElementById('tagsCountBadge').innerText = `0 टैग्स`;
+            }
+
+            // 3. Description Count
+            const descText = document.getElementById('origDescVal').innerText.trim();
+            if (descText && !descText.includes("लोड होगा") && !descText.includes("⏳")) {
+                const words = descText.split(/\s+/).filter(Boolean).length;
+                document.getElementById('descCountBadge').innerText = `${words} शब्द | ${descText.length} अक्षर`;
+            } else {
+                document.getElementById('descCountBadge').innerText = `0 शब्द | 0 अक्षर`;
+            }
+
+            // 4. Script / Transcript Count
+            const scriptText = document.getElementById('origScriptVal').innerText.trim();
+            if (scriptText && !scriptText.includes("नीचे") && !scriptText.includes("⏳") && !scriptText.includes("कोई सबटाइटल नहीं")) {
+                const words = scriptText.split(/\s+/).filter(Boolean).length;
+                const minutes = Math.max(1, Math.round(words / 130)); // Speech rate: ~130 words/min
+                document.getElementById('scriptCountBadge').innerText = `${words} शब्द (~${minutes} मिनट) | ${scriptText.length} अक्षर`;
+            } else {
+                document.getElementById('scriptCountBadge').innerText = `0 शब्द | 0 अक्षर`;
+            }
+        }
 
         function extractHandle(str) {
             const m = str.trim().match(/@([a-zA-Z0-9_.-]+)/);
@@ -521,12 +589,19 @@
             if (title && !title.includes('वीडियो लिस्ट में से')) parts.push('Title');
             if (tags && !tags.includes('लोड होंगे') && !tags.includes('⏳')) parts.push('Tags');
             if (desc && !desc.includes('लोड होगा') && !desc.includes('⏳')) parts.push('Desc');
-            if (script && !script.includes('नीचे') && !script.includes('⏳') && !script.includes('कोई सबटाइटल नहीं')) parts.push('Script');
+            
+            let timeStr = "";
+            if (script && !script.includes('नीचे') && !script.includes('⏳') && !script.includes('कोई सबटाइटल नहीं')) {
+                const words = script.split(/\s+/).filter(Boolean).length;
+                const minutes = Math.max(1, Math.round(words / 130));
+                parts.push(`Script (~${minutes} मिनट)`);
+                timeStr = ` (${minutes} मिनट की स्क्रिप्ट)`;
+            }
 
             const labelStr = parts.length > 0 ? parts.join(' + ') : 'Title';
             const btn = document.getElementById('btnAiGen');
             if(btn) {
-                btn.innerHTML = `<span class="material-icons-round">auto_awesome</span> जेमिनी AI से कंटेंट पैकेज जनरेट करें (${labelStr})`;
+                btn.innerHTML = `<span class="material-icons-round">auto_awesome</span> जेमिनी AI से पूरी लेंथ की स्क्रिप्ट जनरेट करें (${labelStr})`;
             }
         }
 
@@ -551,13 +626,14 @@
 
             document.getElementById('studioWorkArea').scrollIntoView({ behavior: 'smooth' });
 
+            updateWordAndCharCounts();
             updateGeminiBtnLabel();
 
             // FETCH METADATA
             fetchAllVideoMetadata(videoId, title);
         }
 
-        // FETCH REAL YOUTUBE METADATA (SUPPORTS OFFICIAL YOUTUBE DATA API V3 KEY)
+        // FETCH REAL YOUTUBE METADATA (OFFICIAL API V3 & WORKER V7 ENGINE)
         async function fetchAllVideoMetadata(videoId, titleFallback) {
             const tagBox = document.getElementById('origTagsVal');
             const descBox = document.getElementById('origDescVal');
@@ -568,7 +644,7 @@
             let realTags = [];
             let realDesc = "";
 
-            const engineMode = localStorage.getItem("yt_engine_mode") || "official";
+            const engineMode = document.getElementById('ytMetadataModeSelect').value;
             const ytApiKey = localStorage.getItem("myYtDataApiKey") || "";
 
             // METHOD 1: OFFICIAL YOUTUBE DATA API V3
@@ -587,32 +663,23 @@
                 } catch(e) {}
             }
 
-            // METHOD 2: PUBLIC PIPED & INVIDIOUS SCRAPER FALLBACK
+            // METHOD 2: WORKER V7 SCRAPER ENGINE
             if (realDesc.length === 0) {
-                const apis = [
-                    `https://pipedapi.kavin.rocks/streams/${videoId}`,
-                    `https://api.piped.video/streams/${videoId}`,
-                    `https://invidious.nerdvpn.de/api/v1/videos/${videoId}`,
-                    `${localStorage.getItem("yt_api_url") || YT_WORKER}/?videoId=${videoId}`
-                ];
-
-                for (let url of apis) {
-                    try {
-                        const res = await fetch(url);
-                        if (res.ok) {
-                            const data = await res.json();
-                            if (realTags.length === 0) {
-                                if (data.tags && Array.isArray(data.tags)) realTags = data.tags;
-                                else if (data.keywords && Array.isArray(data.keywords)) realTags = data.keywords;
-                            }
-                            if (realDesc.length === 0) {
-                                if (data.description && typeof data.description === 'string') realDesc = data.description.trim();
-                                else if (data.desc && typeof data.desc === 'string') realDesc = data.desc.trim();
-                            }
-                            if (realDesc.length > 10) break;
+                try {
+                    const res = await fetch(`${localStorage.getItem("yt_api_url") || YT_WORKER}/?videoId=${videoId}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.tags && Array.isArray(data.tags)) realTags = data.tags;
+                        else if (data.keywords && Array.isArray(data.keywords)) realTags = data.keywords;
+                        
+                        if (data.desc && typeof data.desc === 'string') realDesc = data.desc.trim();
+                        else if (data.description && typeof data.description === 'string') realDesc = data.description.trim();
+                        
+                        if (data.transcript && data.transcript.trim().length > 10) {
+                            document.getElementById('origScriptVal').innerText = data.transcript.trim();
                         }
-                    } catch(e) {}
-                }
+                    }
+                } catch(e) {}
             }
 
             // POPULATE REAL TAGS
@@ -633,10 +700,11 @@
                 descBox.innerText = "ओरिजिनल विवरण प्राप्त नहीं हुआ। AI शीर्षक और टैग्स का उपयोग करके सामग्री तैयार करेगा।";
             }
 
+            updateWordAndCharCounts();
             updateGeminiBtnLabel();
         }
 
-        // EXTRACT TRANSCRIPT
+        // EXTRACT TRANSCRIPT (WORKER V7 / RAPIDAPI)
         async function extractTranscript() {
             const videoId = document.getElementById('currentVideoId').value;
             const videoUrl = document.getElementById('vidUrlVal').value;
@@ -653,7 +721,7 @@
 
             let finalTranscript = "";
 
-            if (mode === "public") {
+            if (mode === "worker") {
                 const ytWorker = localStorage.getItem("yt_api_url") || YT_WORKER;
                 try {
                     const res = await fetch(`${ytWorker}/?videoId=${videoId}`);
@@ -664,20 +732,6 @@
                         }
                     }
                 } catch(e) {}
-
-                if(!finalTranscript) {
-                    try {
-                        const r = await fetch('https://api.kome.ai/api/tools/youtube-transcripts', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ video_id: videoId, format: true })
-                        });
-                        if(r.ok) {
-                            const kd = await r.json();
-                            if(kd.transcript) finalTranscript = kd.transcript;
-                        }
-                    } catch(e) {}
-                }
             } else if (mode === "rapid") {
                 const rapidKey = localStorage.getItem("myRapidApiKey");
                 if(!rapidKey) {
@@ -712,6 +766,7 @@
                 scriptBox.innerText = "इस वीडियो में कोई सबटाइटल नहीं मिला। AI टाइटल और विवरण से पूरी स्क्रिप्ट तैयार करेगा।";
             }
 
+            updateWordAndCharCounts();
             updateGeminiBtnLabel();
         }
 
@@ -726,7 +781,7 @@
                 .trim();
         }
 
-        // GEMINI AI MASTER GENERATOR (DIRECT GEMINI API SUPPORT PREVENTS 400 ERRORS)
+        // GEMINI AI MASTER GENERATOR (MATCHES FULL LENGTH OF EXTRACTED TRANSCRIPT)
         async function generateAiScriptMaster() {
             const rawTitle = document.getElementById('origTitleVal').innerText.trim();
             const rawChannel = document.getElementById('currentSelectedChannel').value.trim();
@@ -734,6 +789,7 @@
             const rawDesc = document.getElementById('origDescVal').innerText.trim();
             const rawScript = document.getElementById('origScriptVal').innerText.trim();
             
+            const selectedGeminiEngine = document.getElementById('geminiEngineSelect').value;
             const userGeminiKey = localStorage.getItem("myGeminiApiKey") || "";
             const geminiWorkerUrl = localStorage.getItem("gemini_api_url") || GEMINI_WORKER;
             const btn = document.getElementById('btnAiGen');
@@ -744,29 +800,42 @@
 
             const originalBtnHtml = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = `<span class="btn-spinner"></span> जेमिनी AI जनरेट कर रहा है...`;
+            btn.innerHTML = `<span class="btn-spinner"></span> जेमिनी AI पूरी लेंथ की स्क्रिप्ट लिख रहा है...`;
 
             const cleanTitle = sanitizeTextForAI(rawTitle);
             const cleanChannel = sanitizeTextForAI(rawChannel);
-            let cleanTags = rawTags.includes('लोड होंगे') || rawTags.includes('⏳') ? "" : sanitizeTextForAI(rawTags).substring(0, 300);
-            let cleanDesc = rawDesc.includes('लोड होगा') || rawDesc.includes('⏳') ? "" : sanitizeTextForAI(rawDesc).substring(0, 1000);
-            let cleanScript = rawScript.includes('नीचे') || rawScript.includes('⏳') || rawScript.includes('कोई सबटाइटल नहीं') ? "" : sanitizeTextForAI(rawScript).substring(0, 3000);
+            let cleanTags = rawTags.includes('लोड होंगे') || rawTags.includes('⏳') ? "" : sanitizeTextForAI(rawTags).substring(0, 400);
+            let cleanDesc = rawDesc.includes('लोड होगा') || rawDesc.includes('⏳') ? "" : sanitizeTextForAI(rawDesc).substring(0, 1200);
+            let cleanScript = rawScript.includes('नीचे') || rawScript.includes('⏳') || rawScript.includes('कोई सबटाइटल नहीं') ? "" : sanitizeTextForAI(rawScript);
 
-            let promptText = `तुम एक यूट्यूब न्यूज़ एंकर और SEO विशेषज्ञ हो।\n\n`;
+            // Calculate Target Length from extracted transcript
+            let targetWords = 400;
+            let targetMinutes = 3;
+            if (cleanScript.length > 50) {
+                targetWords = cleanScript.split(/\s+/).filter(Boolean).length;
+                targetMinutes = Math.max(1, Math.round(targetWords / 130));
+            }
+
+            let promptText = `तुम DLS Bhai न्यूज़ स्टाइल के भारत के नंबर 1 हिंदी YouTube न्यूज़ स्क्रिप्ट राइटर हो।\n\n`;
             promptText += `[COMPETITOR DATA]:\n`;
             promptText += `- शीर्षक (Title): ${cleanTitle}\n`;
             if(cleanChannel) promptText += `- कंपीटीटर चैनल: ${cleanChannel}\n`;
             if(cleanTags) promptText += `- कंपीटीटर टैग्स (Tags): ${cleanTags}\n`;
             if(cleanDesc) promptText += `- ओरिजिनल पूरा विवरण (Desc): ${cleanDesc}\n`;
-            if(cleanScript) promptText += `- ओरिजिनल ट्रांसक्रिप्ट (Script): ${cleanScript}\n`;
+            if(cleanScript) promptText += `- ओरिजिनल ट्रांसक्रिप्ट (Script): ${cleanScript.substring(0, 6000)}\n`;
 
-            promptText += `\n[INSTRUCTIONS]:
-नीचे दिए गए 4 ब्लॉक्स में ही कंटेंट जनरेट करें:
+            promptText += `\n[CRITICAL LENGTH & STYLE INSTRUCTION]:
+1. ओरिजिनल स्क्रिप्ट में लगभग ${targetWords} शब्द हैं (लगभग ${targetMinutes} मिनट का भाषण)। तुम्हें किसी भी जानकारी को संक्षिप्त (Short) नहीं करना है। बिल्कुल उसी लंबाई के बराबर लगभग ${targetWords} शब्दों की पूरी ${targetMinutes} मिनट लंबी विस्तृत वॉइसओवर स्क्रिप्ट लिखो।
+2. स्वच्छ हिंदी स्क्रिप्ट (NO Markdown, NO Stars, NO Hash, NO Brackets)।
+3. शुरुआत "नमस्कार! आप देख रहे हैं आर्यन न्यूज़ टेक..." से करें।
 
-1. [NEW_TITLE]: 1-2 शब्द बदलकर वायरल बनाएं। शुरू में 'बड़ी खबर:' जोड़ें।
-2. [NEW_SCRIPT]: 300-400 शब्दों की पूरी हिंदी वॉइसओवर स्क्रिप्ट लिखें। शुरुआत "नमस्कार! आप देख रहे हैं आर्यन न्यूज़ टेक..." से करें।
-3. [NEW_DESC]: पूरा हाइजैक SEO विवरण लिखें। चैनल का नाम (${cleanChannel || 'Competitor'}) स्वाभाविक रूप से शामिल करें।
-4. [NEW_TAGS]: वायरल टैग्स कॉमा से अलग करके लिखें।
+[OUTPUT STRUCTURE]:
+नीचे दिए गए 4 ब्लॉक्स में कंटेंट जनरेट करें:
+
+1. [NEW_TITLE]: 1-2 शब्द बदलकर नया वायरल टाइटल।
+2. [NEW_SCRIPT]: पूरे ${targetWords} शब्दों (~${targetMinutes} मिनट) की DLS Bhai शैली में वॉइसओवर स्क्रिप्ट।
+3. [NEW_DESC]: पूरा हाइजैक SEO विवरण (${cleanChannel || 'Competitor'} चैनल का नाम शामिल करें)।
+4. [NEW_TAGS]: वायरल टैग्स कॉमा से अलग।
 
 [NEW_TITLE]
 (नया टाइटल)
@@ -783,8 +852,8 @@
             try {
                 let res = null;
 
-                // STRATEGY 1: DIRECT GOOGLE GEMINI OFFICIAL API (IF KEY PROVIDED)
-                if (userGeminiKey.length > 10) {
+                // STRATEGY 1: DIRECT GOOGLE GEMINI OFFICIAL API (IF SELECTED & KEY PROVIDED)
+                if (selectedGeminiEngine === "direct" && userGeminiKey.length > 10) {
                     try {
                         const directGeminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${userGeminiKey}`;
                         res = await fetch(directGeminiEndpoint, {
@@ -816,7 +885,7 @@
                 }
 
                 if (!res || !res.ok) {
-                    throw new Error(`Gemini Error (${res ? res.status : "Failed"}). कृपया सेटिंग्स (⚙️) में अपनी Google Gemini API Key डालें!`);
+                    throw new Error(`Gemini Error (${res ? res.status : "Failed"}). कृपया सेटिंग्स (⚙️) में जाकर अपनी Google Gemini API Key डालें!`);
                 }
 
                 const data = await res.json();
@@ -893,7 +962,7 @@
             if(!content) return;
             const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
             const url = URL.createObjectURL(blob);
-            const a = document.append("a");
+            const a = document.createElement("a");
             a.href = url;
             a.download = filename;
             document.body.appendChild(a);
