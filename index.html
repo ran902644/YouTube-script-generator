@@ -79,6 +79,7 @@
         .content-card-actions { display: flex; gap: 6px; align-items: center; }
 
         .count-badge { font-size: 0.68rem; background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 8px; border-radius: 6px; font-weight: 800; display: inline-flex; align-items: center; gap: 4px; }
+        .count-badge.purple { background: rgba(168, 85, 247, 0.2); color: #f0abfc; border-color: rgba(168, 85, 247, 0.4); }
 
         .content-view { font-size: 0.88rem; color: #e2e8f0; line-height: 1.6; max-height: 180px; overflow-y: auto; white-space: pre-wrap; word-break: break-word; }
         .content-view.large { max-height: 280px; font-size: 0.9rem; }
@@ -275,7 +276,10 @@
             <div class="ai-card">
                 <div class="ai-card-head">
                     <span><span class="material-icons-round">text_fields</span> 1. New SEO Title</span>
-                    <button class="btn-mini" onclick="copyText('aiTitleOut', this)"><span class="material-icons-round" style="font-size:12px;">content_copy</span> Copy</button>
+                    <div class="content-card-actions">
+                        <span class="count-badge purple" id="aiTitleCountBadge">0 शब्द | 0 अक्षर</span>
+                        <button class="btn-mini" onclick="copyText('aiTitleOut', this)"><span class="material-icons-round" style="font-size:12px;">content_copy</span> Copy</button>
+                    </div>
                 </div>
                 <div class="content-view" id="aiTitleOut" style="font-weight:bold; color:#fff; font-size:0.95rem;"></div>
             </div>
@@ -284,7 +288,8 @@
             <div class="ai-card">
                 <div class="ai-card-head">
                     <span><span class="material-icons-round">mic</span> 2. Voiceover Script (100% Length Matched)</span>
-                    <div style="display:flex; gap:6px;">
+                    <div class="content-card-actions">
+                        <span class="count-badge purple" id="aiScriptCountBadge">0 शब्द | 0 अक्षर</span>
                         <button class="btn-mini" onclick="downloadAiScript()"><span class="material-icons-round" style="font-size:12px;">download</span> TXT</button>
                         <button class="btn-mini" onclick="copyText('aiScriptOut', this)"><span class="material-icons-round" style="font-size:12px;">content_copy</span> Copy</button>
                     </div>
@@ -296,7 +301,10 @@
             <div class="ai-card">
                 <div class="ai-card-head">
                     <span><span class="material-icons-round">segment</span> 3. Hijack Description</span>
-                    <button class="btn-mini" onclick="copyText('aiDescOut', this)"><span class="material-icons-round" style="font-size:12px;">content_copy</span> Copy</button>
+                    <div class="content-card-actions">
+                        <span class="count-badge purple" id="aiDescCountBadge">0 शब्द | 0 अक्षर</span>
+                        <button class="btn-mini" onclick="copyText('aiDescOut', this)"><span class="material-icons-round" style="font-size:12px;">content_copy</span> Copy</button>
+                    </div>
                 </div>
                 <div class="content-view large" id="aiDescOut" style="color:#e2e8f0;"></div>
             </div>
@@ -305,7 +313,10 @@
             <div class="ai-card">
                 <div class="ai-card-head">
                     <span><span class="material-icons-round">label</span> 4. Viral SEO Tags</span>
-                    <button class="btn-mini" onclick="copyText('aiTagsOut', this)"><span class="material-icons-round" style="font-size:12px;">content_copy</span> Copy</button>
+                    <div class="content-card-actions">
+                        <span class="count-badge purple" id="aiTagsCountBadge">0 टैग्स</span>
+                        <button class="btn-mini" onclick="copyText('aiTagsOut', this)"><span class="material-icons-round" style="font-size:12px;">content_copy</span> Copy</button>
+                    </div>
                 </div>
                 <div class="content-view" id="aiTagsOut" style="color:#c084fc;"></div>
             </div>
@@ -412,7 +423,7 @@
 
         const updateCompBadge = () => { document.getElementById('compCount').innerText = `${competitors.length} Channels`; };
 
-        // LIVE COUNTING FUNCTION FOR TITLE, TAGS, DESC, AND TRANSCRIPT
+        // LIVE COUNTING FUNCTION FOR INPUT DATA
         function updateWordAndCharCounts() {
             // 1. Title Count
             const titleText = document.getElementById('origTitleVal').innerText.trim();
@@ -449,6 +460,46 @@
                 document.getElementById('scriptCountBadge').innerText = `${words} शब्द (~${minutes} मिनट) | ${scriptText.length} अक्षर`;
             } else {
                 document.getElementById('scriptCountBadge').innerText = `0 शब्द | 0 अक्षर`;
+            }
+        }
+
+        // LIVE COUNTING FUNCTION FOR AI GENERATED OUTPUTS
+        function updateAiOutputCounts() {
+            // 1. AI Title
+            const tText = document.getElementById('aiTitleOut').innerText.trim();
+            if (tText) {
+                const words = tText.split(/\s+/).filter(Boolean).length;
+                document.getElementById('aiTitleCountBadge').innerText = `${words} शब्द | ${tText.length} अक्षर`;
+            } else {
+                document.getElementById('aiTitleCountBadge').innerText = `0 शब्द | 0 अक्षर`;
+            }
+
+            // 2. AI Script
+            const sText = document.getElementById('aiScriptOut').innerText.trim();
+            if (sText) {
+                const words = sText.split(/\s+/).filter(Boolean).length;
+                const minutes = Math.max(1, Math.round(words / 130));
+                document.getElementById('aiScriptCountBadge').innerText = `${words} शब्द (~${minutes} मिनट) | ${sText.length} अक्षर`;
+            } else {
+                document.getElementById('aiScriptCountBadge').innerText = `0 शब्द | 0 अक्षर`;
+            }
+
+            // 3. AI Description
+            const dText = document.getElementById('aiDescOut').innerText.trim();
+            if (dText) {
+                const words = dText.split(/\s+/).filter(Boolean).length;
+                document.getElementById('aiDescCountBadge').innerText = `${words} शब्द | ${dText.length} अक्षर`;
+            } else {
+                document.getElementById('aiDescCountBadge').innerText = `0 शब्द | 0 अक्षर`;
+            }
+
+            // 4. AI Tags
+            const tgText = document.getElementById('aiTagsOut').innerText.trim();
+            if (tgText) {
+                const tagList = tgText.split(',').map(s => s.trim()).filter(Boolean);
+                document.getElementById('aiTagsCountBadge').innerText = `${tagList.length} टैग्स`;
+            } else {
+                document.getElementById('aiTagsCountBadge').innerText = `0 टैग्स`;
             }
         }
 
@@ -590,12 +641,10 @@
             if (tags && !tags.includes('लोड होंगे') && !tags.includes('⏳')) parts.push('Tags');
             if (desc && !desc.includes('लोड होगा') && !desc.includes('⏳')) parts.push('Desc');
             
-            let timeStr = "";
             if (script && !script.includes('नीचे') && !script.includes('⏳') && !script.includes('कोई सबटाइटल नहीं')) {
                 const words = script.split(/\s+/).filter(Boolean).length;
                 const minutes = Math.max(1, Math.round(words / 130));
                 parts.push(`Script (~${minutes} मिनट)`);
-                timeStr = ` (${minutes} मिनट की स्क्रिप्ट)`;
             }
 
             const labelStr = parts.length > 0 ? parts.join(' + ') : 'Title';
@@ -704,7 +753,7 @@
             updateGeminiBtnLabel();
         }
 
-        // EXTRACT TRANSCRIPT (WORKER V7 / RAPIDAPI)
+        // EXTRACT TRANSCRIPT (WORKER V7 / RAPIDAPI MULTI-LANG AUTO FALLBACK)
         async function extractTranscript() {
             const videoId = document.getElementById('currentVideoId').value;
             const videoUrl = document.getElementById('vidUrlVal').value;
@@ -742,19 +791,35 @@
                     return;
                 }
 
-                try {
-                    const res = await fetch(`https://youtube-transcript3.p.rapidapi.com/api/transcript-with-url?url=${encodeURIComponent(videoUrl)}&flat_text=true&lang=hi`, {
-                        method: 'GET',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'x-rapidapi-host': 'youtube-transcript3.p.rapidapi.com',
-                            'x-rapidapi-key': rapidKey
+                // RapidAPI Multi-Language Fallback (Hindi -> English -> Auto)
+                const langVariants = ['hi', 'en', ''];
+                for (let lang of langVariants) {
+                    try {
+                        let langQuery = lang ? `&lang=${lang}` : '';
+                        let rapidEndpoint = `https://youtube-transcript3.p.rapidapi.com/api/transcript-with-url?url=${encodeURIComponent(videoUrl)}&flat_text=true${langQuery}`;
+                        let res = await fetch(rapidEndpoint, {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'x-rapidapi-host': 'youtube-transcript3.p.rapidapi.com',
+                                'x-rapidapi-key': rapidKey
+                            }
+                        });
+                        if (res.ok) {
+                            let json = await res.json();
+                            let txt = "";
+                            if (typeof json.transcript === 'string') txt = json.transcript;
+                            else if (Array.isArray(json.transcript)) txt = json.transcript.map(t => t.text || t).join(' ');
+                            else if (typeof json.data === 'string') txt = json.data;
+                            else if (Array.isArray(json.data)) txt = json.data.map(t => t.text || t).join(' ');
+
+                            if (txt && txt.trim().length > 10) {
+                                finalTranscript = txt.trim();
+                                break;
+                            }
                         }
-                    });
-                    const d = await res.json();
-                    if(d.transcript) finalTranscript = typeof d.transcript === 'string' ? d.transcript : JSON.stringify(d.transcript);
-                    else if(d.data) finalTranscript = d.data;
-                } catch(e) {}
+                    } catch(e) {}
+                }
             }
 
             btn.disabled = false;
@@ -907,6 +972,9 @@
                 document.getElementById('aiScriptOut').innerText = fScript || output;
                 document.getElementById('aiDescOut').innerText = fDesc || rawDesc;
                 document.getElementById('aiTagsOut').innerText = fTags || rawTags;
+
+                // Update Counts for AI Output Cards
+                updateAiOutputCounts();
 
                 const resCard = document.getElementById('aiResultCard');
                 resCard.style.display = "block";
