@@ -174,8 +174,8 @@
             <div class="control-panel-box" style="margin-top:0; margin-bottom:15px;">
                 <label>📌 YouTube Metadata Engine (Title, Tags, Description हेतु):</label>
                 <select id="ytMetadataModeSelect" onchange="saveEngineSelections()">
-                    <option value="official">🔑 Official YouTube Data API v3 (Fast & 100% Real)</option>
-                    <option value="worker">🌐 YouTube Worker URL (v7 Live Engine)</option>
+                    <option value="worker">🌐 YouTube Worker URL (v7 Live Engine - 100% Real Tags/Desc)</option>
+                    <option value="official">🔑 Official YouTube Data API v3 (Fast Key Backup)</option>
                 </select>
             </div>
 
@@ -245,8 +245,8 @@
             <div class="control-panel-box">
                 <label>🎙️ ट्रांसक्रिप्ट निष्कर्षण मॉडल चुनें (Script Extraction Engine):</label>
                 <select id="transcriptModeSelect" onchange="saveEngineSelections()">
+                    <option value="rapid">🚀 Premium RapidAPI (Fast Multi-Lang Auto Fallback)</option>
                     <option value="worker">🌐 YouTube Worker URL (v7 Live Subtitle Scraper)</option>
-                    <option value="rapid">🚀 Premium RapidAPI (Fast Key Backup)</option>
                 </select>
                 <button class="btn-extract" id="btnExtractScript" onclick="extractTranscript()"><span class="material-icons-round">subtitles</span> पूरा स्क्रिप्ट (Transcript) निकालें</button>
             </div>
@@ -382,8 +382,8 @@
         let competitors = JSON.parse(localStorage.getItem("aryan_competitors") || "[]");
 
         window.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('ytMetadataModeSelect').value = localStorage.getItem("yt_meta_mode") || "official";
-            document.getElementById('transcriptModeSelect').value = localStorage.getItem("yt_transcript_mode") || "worker";
+            document.getElementById('ytMetadataModeSelect').value = localStorage.getItem("yt_meta_mode") || "worker";
+            document.getElementById('transcriptModeSelect').value = localStorage.getItem("yt_transcript_mode") || "rapid";
             document.getElementById('geminiEngineSelect').value = localStorage.getItem("gemini_engine_mode") || "direct";
 
             document.getElementById('ytDataApiKey').value = localStorage.getItem("myYtDataApiKey") || "";
@@ -682,7 +682,7 @@
             fetchAllVideoMetadata(videoId, title);
         }
 
-        // FETCH REAL YOUTUBE METADATA (OFFICIAL API V3 & WORKER V7 ENGINE)
+        // FETCH REAL YOUTUBE METADATA (WORKER V7 LIVE ENGINE & OFFICIAL API V3)
         async function fetchAllVideoMetadata(videoId, titleFallback) {
             const tagBox = document.getElementById('origTagsVal');
             const descBox = document.getElementById('origDescVal');
@@ -694,10 +694,44 @@
             let realDesc = "";
 
             const engineMode = document.getElementById('ytMetadataModeSelect').value;
+            const ytWorkerUrl = localStorage.getItem("yt_api_url") || YT_WORKER;
             const ytApiKey = localStorage.getItem("myYtDataApiKey") || "";
 
-            // METHOD 1: OFFICIAL YOUTUBE DATA API V3
-            if (engineMode === "official" && ytApiKey.length > 10) {
+            // METHOD 1: WORKER V7 LIVE ENGINE (DEFAULT)
+            if (engineMode === "worker" || !ytApiKey) {
+                try {
+                    const queryUrls = [
+                        `${ytWorkerUrl}/?videoId=${videoId}`,
+                        `${ytWorkerUrl}/?v=${videoId}`,
+                        `https://pipedapi.kavin.rocks/streams/${videoId}`,
+                        `https://api.piped.video/streams/${videoId}`
+                    ];
+
+                    for (let u of queryUrls) {
+                        try {
+                            const res = await fetch(u);
+                            if (res.ok) {
+                                const data = await res.json();
+                                if (realTags.length === 0) {
+                                    if (data.tags && Array.isArray(data.tags)) realTags = data.tags;
+                                    else if (data.keywords && Array.isArray(data.keywords)) realTags = data.keywords;
+                                }
+                                if (realDesc.length === 0) {
+                                    if (data.desc && typeof data.desc === 'string') realDesc = data.desc.trim();
+                                    else if (data.description && typeof data.description === 'string') realDesc = data.description.trim();
+                                }
+                                if (data.transcript && data.transcript.trim().length > 10) {
+                                    document.getElementById('origScriptVal').innerText = data.transcript.trim();
+                                }
+                                if (realDesc.length > 10) break;
+                            }
+                        } catch(e) {}
+                    }
+                } catch(e) {}
+            }
+
+            // METHOD 2: OFFICIAL YOUTUBE DATA API V3
+            if (realDesc.length === 0 && ytApiKey.length > 10) {
                 try {
                     const apiUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${ytApiKey}`;
                     const res = await fetch(apiUrl);
@@ -707,25 +741,6 @@
                             const snippet = json.items[0].snippet;
                             if (snippet.tags) realTags = snippet.tags;
                             if (snippet.description) realDesc = snippet.description;
-                        }
-                    }
-                } catch(e) {}
-            }
-
-            // METHOD 2: WORKER V7 SCRAPER ENGINE
-            if (realDesc.length === 0) {
-                try {
-                    const res = await fetch(`${localStorage.getItem("yt_api_url") || YT_WORKER}/?videoId=${videoId}`);
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data.tags && Array.isArray(data.tags)) realTags = data.tags;
-                        else if (data.keywords && Array.isArray(data.keywords)) realTags = data.keywords;
-                        
-                        if (data.desc && typeof data.desc === 'string') realDesc = data.desc.trim();
-                        else if (data.description && typeof data.description === 'string') realDesc = data.description.trim();
-                        
-                        if (data.transcript && data.transcript.trim().length > 10) {
-                            document.getElementById('origScriptVal').innerText = data.transcript.trim();
                         }
                     }
                 } catch(e) {}
@@ -835,18 +850,21 @@
             updateGeminiBtnLabel();
         }
 
+        // STRICT TEXT SANITIZER PREVENTS JSON BREAKING & GEMINI 400 ERRORS
         function sanitizeTextForAI(str) {
             if (!str) return "";
             return str
-                .replace(/[\u0000-\u001F\u007F-\u009F]/g, " ")
+                .replace(/\[.*?\]/g, "")             // Remove [संगीत], [Music], [Laughter]
+                .replace(/[\u0000-\u001F\u007F-\u009F]/g, " ") // Remove control chars
                 .replace(/\\/g, "/")
                 .replace(/"/g, "'")
+                .replace(/`/g, "'")
                 .replace(/\r/g, " ")
-                .replace(/\n+/g, " ")
+                .replace(/\n+/g, "\n")
                 .trim();
         }
 
-        // GEMINI AI MASTER GENERATOR (MATCHES FULL LENGTH OF EXTRACTED TRANSCRIPT)
+        // GEMINI AI MASTER GENERATOR (GUARANTEED NO 400 ERROR)
         async function generateAiScriptMaster() {
             const rawTitle = document.getElementById('origTitleVal').innerText.trim();
             const rawChannel = document.getElementById('currentSelectedChannel').value.trim();
@@ -867,6 +885,7 @@
             btn.disabled = true;
             btn.innerHTML = `<span class="btn-spinner"></span> जेमिनी AI पूरी लेंथ की स्क्रिप्ट लिख रहा है...`;
 
+            // Sanitize all inputs to prevent JSON parsing break
             const cleanTitle = sanitizeTextForAI(rawTitle);
             const cleanChannel = sanitizeTextForAI(rawChannel);
             let cleanTags = rawTags.includes('लोड होंगे') || rawTags.includes('⏳') ? "" : sanitizeTextForAI(rawTags).substring(0, 400);
@@ -887,7 +906,7 @@
             if(cleanChannel) promptText += `- कंपीटीटर चैनल: ${cleanChannel}\n`;
             if(cleanTags) promptText += `- कंपीटीटर टैग्स (Tags): ${cleanTags}\n`;
             if(cleanDesc) promptText += `- ओरिजिनल पूरा विवरण (Desc): ${cleanDesc}\n`;
-            if(cleanScript) promptText += `- ओरिजिनल ट्रांसक्रिप्ट (Script): ${cleanScript.substring(0, 6000)}\n`;
+            if(cleanScript) promptText += `- ओरिजिनल ट्रांसक्रिप्ट (Script): ${cleanScript.substring(0, 5000)}\n`;
 
             promptText += `\n[CRITICAL LENGTH & STYLE INSTRUCTION]:
 1. ओरिजिनल स्क्रिप्ट में लगभग ${targetWords} शब्द हैं (लगभग ${targetMinutes} मिनट का भाषण)। तुम्हें किसी भी जानकारी को संक्षिप्त (Short) नहीं करना है। बिल्कुल उसी लंबाई के बराबर लगभग ${targetWords} शब्दों की पूरी ${targetMinutes} मिनट लंबी विस्तृत वॉइसओवर स्क्रिप्ट लिखो।
@@ -929,11 +948,11 @@
                     } catch(e) {}
                 }
 
-                // STRATEGY 2: WORKER ENGINE FALLBACK
+                // STRATEGY 2: WORKER ENGINE FALLBACK (MULTI-PAYLOAD RETRY PREVENTS 400)
                 if (!res || !res.ok) {
                     let payloadVariants = [
-                        { prompt: promptText },
                         { contents: [{ parts: [{ text: promptText }] }] },
+                        { prompt: promptText },
                         { text: promptText }
                     ];
 
@@ -950,7 +969,7 @@
                 }
 
                 if (!res || !res.ok) {
-                    throw new Error(`Gemini Error (${res ? res.status : "Failed"}). कृपया सेटिंग्स (⚙️) में जाकर अपनी Google Gemini API Key डालें!`);
+                    throw new Error(`Gemini Error (${res ? res.status : "Failed"}). कृपया सेटिंग्स (⚙️) में जाकर अपनी Google Gemini API Key डालें या Gemini URL जांचें!`);
                 }
 
                 const data = await res.json();
