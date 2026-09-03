@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0f172a">
+    <title>Aryan Studio Pro - AI News Studio</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f172a;          /* Slate 900 */
+            --card: #1e293b;        /* Slate 800 */
+            --card-sub: #172554;
+            --box-bg: #090d16;
+            --border: #334155;
+            --primary: #3b82f6;     /* Royal Blue */
+            --primary-light: #60a5fa;
+            --purple: #a855f7;
+            --accent: #ef4444;
+            --success: #10b981;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --header-h: 58px;
+            --footer-h: 42px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); padding-top: calc(var(--header-h) + 14px); padding-bottom: calc(var(--footer-h) + 25px); min-height: 100vh; overflow-x: hidden; }
+
+        /* FIXED APP HEADER */
+        header { position: fixed; top: 0; left: 0; width: 100%; height: var(--header-h); background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(14px); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; z-index: 1000; box-shadow: 0 4px 20px rgba(0,0,0,0.25); }
+        .logo-wrap { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.15rem; color: #fff; letter-spacing: 0.3px; }
+        .logo-wrap span.icon { color: var(--accent); font-size: 26px; }
+        .header-actions { display: flex; gap: 8px; }
+        .icon-btn { background: #334155; border: 1px solid rgba(255,255,255,0.1); color: #fff; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+        .icon-btn:active { transform: scale(0.92); background: var(--primary); }
+
+        /* FIXED FOOTER */
+        footer { position: fixed; bottom: 0; left: 0; width: 100%; height: var(--footer-h); background: rgba(30, 41, 59, 0.96); backdrop-filter: blur(10px); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: center; z-index: 1000; font-size: 0.75rem; color: var(--text-muted); font-weight: 500; }
+
+        /* APP CONTAINER */
+        .app-container { width: 100%; max-width: 820px; margin: 0 auto; padding: 0 14px; }
+
+        /* SECTION STYLING */
+        .section-box { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 18px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .section-title { font-size: 1.02rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px; }
+        .badge-pill { font-size: 0.72rem; background: rgba(59, 130, 246, 0.18); color: var(--primary-light); padding: 4px 10px; border-radius: 20px; font-weight: 700; border: 1px solid rgba(59, 130, 246, 0.3); }
+
+        /* INPUTS & CONTROLS */
+        .input-group { display: flex; gap: 8px; margin-bottom: 12px; }
+        input, select, textarea { width: 100%; background: var(--box-bg); border: 1.5px solid var(--border); color: #fff; padding: 13px 14px; border-radius: 12px; font-size: 0.9rem; outline: none; transition: 0.2s; }
+        input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25); }
+        .btn-action { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; border: none; padding: 0 20px; border-radius: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.92rem; white-space: nowrap; }
+        .btn-action:active { transform: scale(0.96); }
+
+        /* COMPETITOR CARDS & VIDEO ITEMS */
+        .channel-card { background: #182234; border: 1px solid var(--border); border-radius: 14px; padding: 12px; margin-bottom: 12px; }
+        .channel-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .channel-title { font-size: 0.95rem; font-weight: 800; display: flex; align-items: center; gap: 6px; color: #93c5fd; }
+        .btn-del { color: #f87171; background: none; border: none; cursor: pointer; display: flex; align-items: center; }
+        
+        .video-scroll { max-height: 270px; overflow-y: auto; display: flex; flex-direction: column; gap: 9px; padding-right: 4px; }
+        .video-item { display: flex; gap: 12px; background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255,255,255,0.06); padding: 9px; border-radius: 12px; cursor: pointer; transition: 0.18s; }
+        .video-item:active { transform: scale(0.98); background: rgba(59,130,246,0.15); border-color: var(--primary); }
+        .video-thumb { width: 98px; height: 56px; border-radius: 8px; object-fit: cover; background: #000; flex-shrink: 0; }
+        .video-info h4 { font-size: 0.84rem; font-weight: 600; line-height: 1.35; color: #f1f5f9; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .video-info small { color: #38bdf8; font-size: 0.74rem; margin-top: 5px; display: flex; align-items: center; gap: 4px; font-weight: 700; }
+
+        /* VIDEO PLAYER PREVIEW */
+        .player-box { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 16px; overflow: hidden; border: 2px solid var(--border); margin-bottom: 16px; display: none; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .player-box iframe { width: 100%; height: 100%; border: none; }
+
+        /* DATA BOXES */
+        .data-grid { display: flex; flex-direction: column; gap: 14px; }
+        .content-card { background: var(--box-bg); border: 1.5px solid var(--border); border-radius: 14px; padding: 14px 15px; position: relative; box-shadow: inset 0 2px 6px rgba(0,0,0,0.25); }
+        .content-card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .content-card-head label { font-size: 0.78rem; font-weight: 800; color: #93c5fd; text-transform: uppercase; letter-spacing: 0.6px; display: flex; align-items: center; gap: 5px; }
+        .content-card-actions { display: flex; gap: 6px; align-items: center; }
+
+        .content-view { font-size: 0.88rem; color: #e2e8f0; line-height: 1.6; max-height: 180px; overflow-y: auto; white-space: pre-wrap; word-break: break-word; }
+        .content-view.large { max-height: 280px; font-size: 0.9rem; }
+
+        /* MINI BUTTONS */
+        .btn-mini { background: #1e293b; color: #60a5fa; border: 1px solid #3b82f6; padding: 4px 10px; border-radius: 8px; font-size: 0.72rem; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; }
+        .btn-mini:active { transform: scale(0.92); }
+        .btn-mini.btn-search { background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.4); }
+
+        /* TRANSCRIPT EXTRACTION BAR */
+        .transcript-control-panel { background: #141e33; border: 1.5px dashed rgba(59, 130, 246, 0.4); border-radius: 14px; padding: 14px; margin-top: 15px; }
+        .btn-extract { width: 100%; height: 50px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; border: none; border-radius: 12px; font-weight: 800; font-size: 0.96rem; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; margin-top: 10px; box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35); }
+        .btn-extract:disabled { opacity: 0.65; cursor: not-allowed; }
+
+        /* SPINNER */
+        .btn-spinner { width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* MASTER GEMINI BUTTON */
+        .btn-ai-generate { width: 100%; padding: 17px; background: linear-gradient(135deg, #8b5cf6, #d946ef); color: white; border: none; border-radius: 16px; font-weight: 800; font-size: 1.02rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 10px 30px rgba(217, 70, 239, 0.35); margin-top: 18px; text-align: center; }
+        .btn-ai-generate:active { transform: scale(0.97); }
+
+        /* AI OUTPUTS */
+        .ai-result-section { display: none; background: #1e1b4b; border: 1.5px solid #8b5cf6; border-radius: 20px; padding: 18px; margin-top: 18px; box-shadow: 0 12px 35px rgba(139, 92, 246, 0.25); }
+        .ai-card { background: #0f0d25; border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 14px; padding: 14px; margin-bottom: 14px; }
+        .ai-card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .ai-card-head span { font-size: 0.85rem; font-weight: 800; color: #d8b4fe; display: flex; align-items: center; gap: 6px; }
+
+        /* SIDEBAR SETTINGS */
+        .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 2000; display: none; }
+        .sidebar { position: fixed; top: 0; right: -330px; width: 320px; height: 100%; background: #1e293b; border-left: 1px solid var(--border); z-index: 2001; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); padding: 22px; overflow-y: auto; }
+        .sidebar.open { right: 0; }
+        .sidebar-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+        .sidebar-group { margin-bottom: 18px; }
+        .sidebar-group label { display: block; font-size: 0.74rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 700; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+    <!-- FIXED TOP HEADER -->
+    <header>
+        <div class="logo-wrap">
+            <span class="icon material-icons-round">smart_display</span>
+            <span>Aryan Studio <small style="font-size:0.68rem; color:#10b981; font-weight:800; background:rgba(16,185,129,0.15); padding:2px 6px; border-radius:6px;">PRO</small></span>
+        </div>
+        <div class="header-actions">
+            <button class="icon-btn" onclick="loadAllChannels()" title="रीफ्रेश"><span class="material-icons-round">refresh</span></button>
+            <button class="icon-btn" onclick="toggleSidebar()" title="सेटिंग्स"><span class="material-icons-round">tune</span></button>
+        </div>
+    </header>
+
+    <!-- MAIN APP CONTAINER -->
+    <div class="app-container">
+
+        <!-- 1. COMPETITOR CHANNEL MONITOR -->
+        <div class="section-box">
+            <div class="section-header">
+                <div class="section-title">
+                    <span class="material-icons-round" style="color:var(--primary);">radar</span>
+                    <span>1. कंपीटीटर चैनल (Real-Time 72h Monitor)</span>
+                </div>
+                <span class="badge-pill" id="compCount">0 Channels</span>
+            </div>
+            
+            <div class="input-group">
+                <input type="text" id="compInput" placeholder="चैनल URL या @username डालें...">
+                <button class="btn-action" onclick="addCompetitor()"><span class="material-icons-round">add</span> Add</button>
+            </div>
+            
+            <div id="channelsContainer"></div>
+        </div>
+
+        <!-- 2. SELECTED VIDEO DATA & EXTRACTION AREA -->
+        <div class="section-box" id="studioWorkArea">
+            <div class="section-header">
+                <div class="section-title">
+                    <span class="material-icons-round" style="color:#f59e0b;">video_library</span>
+                    <span>2. ओरिजिनल वीडियो डेटा & प्लेयर</span>
+                </div>
+                <span class="badge-pill" id="activeVidStatus">वीडियो चुनें</span>
+            </div>
+
+            <!-- YouTube Video Player -->
+            <div class="player-box" id="playerWrap">
+                <iframe id="ytIframe" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+            </div>
+
+            <div class="data-grid">
+                <!-- 1. Video URL -->
+                <div class="content-card">
+                    <div class="content-card-head">
+                        <label><span class="material-icons-round" style="font-size:15px;">link</span> Video URL</label>
+                        <button class="btn-mini" onclick="copyValue('vidUrlVal', this)"><span class="material-icons-round" style="font-size:13px;">content_copy</span> Copy</button>
+                    </div>
+                    <input type="text" id="vidUrlVal" readonly placeholder="वीडियो लिंक यहाँ आएगा..." style="height:38px; padding:6px 12px; font-size:0.85rem; background:#070a10;">
+                </div>
+
+                <!-- 2. Title -->
+                <div class="content-card">
+                    <div class="content-card-head">
+                        <label><span class="material-icons-round" style="font-size:15px;">title</span> Original Title</label>
+                        <button class="btn-mini" onclick="copyText('origTitleVal', this)"><span class="material-icons-round" style="font-size:13px;">content_copy</span> Copy</button>
+                    </div>
+                    <div class="content-view" id="origTitleVal" style="font-weight:700; color:#fff; font-size:0.95rem;">वीडियो लिस्ट में से किसी वीडियो पर टैप करें।</div>
+                </div>
+
+                <!-- 3. Tags -->
+                <div class="content-card">
+                    <div class="content-card-head">
+                        <label><span class="material-icons-round" style="font-size:15px;">tag</span> Competitor Real Tags</label>
+                        <div class="content-card-actions">
+                            <button class="btn-mini btn-search" onclick="fetchAllVideoMetadata(document.getElementById('currentVideoId').value, document.getElementById('origTitleVal').innerText)"><span class="material-icons-round" style="font-size:13px;">search</span> Re-Fetch Tags</button>
+                            <button class="btn-mini" onclick="copyText('origTagsVal', this)"><span class="material-icons-round" style="font-size:13px;">content_copy</span> Copy</button>
+                        </div>
+                    </div>
+                    <div class="content-view" id="origTagsVal" style="color:#60a5fa; font-weight:500;">वीडियो चुनने पर असली टैग्स लोड होंगे...</div>
+                </div>
+
+                <!-- 4. Description -->
+                <div class="content-card">
+                    <div class="content-card-head">
+                        <label><span class="material-icons-round" style="font-size:15px;">description</span> Original Full Description</label>
+                        <div class="content-card-actions">
+                            <button class="btn-mini btn-search" onclick="fetchAllVideoMetadata(document.getElementById('currentVideoId').value, document.getElementById('origTitleVal').innerText)"><span class="material-icons-round" style="font-size:13px;">search</span> Re-Fetch Desc</button>
+                            <button class="btn-mini" onclick="copyText('origDescVal', this)"><span class="material-icons-round" style="font-size:13px;">content_copy</span> Copy</button>
+                        </div>
+                    </div>
+                    <div class="content-view large" id="origDescVal" style="color:#cbd5e1;">वीडियो चुनने पर असली पूरा विवरण यहाँ लोड होगा...</div>
+                </div>
+
+                <!-- 5. Spoken Transcript Script -->
+                <div class="content-card" style="border-color: rgba(16, 185, 129, 0.4);">
+                    <div class="content-card-head">
+                        <label style="color:#6ee7b7;"><span class="material-icons-round" style="font-size:15px;">record_voice_over</span> Original Spoken Script</label>
+                        <div class="content-card-actions">
+                            <button class="btn-mini" onclick="downloadOrigScript()"><span class="material-icons-round" style="font-size:13px;">download</span> TXT</button>
+                            <button class="btn-mini" onclick="copyText('origScriptVal', this)"><span class="material-icons-round" style="font-size:13px;">content_copy</span> Copy</button>
+                        </div>
+                    </div>
+                    <div class="content-view large" id="origScriptVal" style="color:#a7f3d0;">नीचे 'पूरा स्क्रिप्ट निकालें' बटन दबाएँ...</div>
+                </div>
+            </div>
+
+            <!-- TRANSCRIPT MODEL DROPDOWN & EXTRACT BUTTON -->
+            <div class="transcript-control-panel">
+                <label style="font-size:0.78rem; color:#93c5fd; font-weight:bold; display:block; margin-bottom:8px;">🎙️ ट्रांसक्रिप्ट API मॉडल चुनें:</label>
+                <select id="transcriptModeSelect">
+                    <option value="public">🌐 Public API (Free / Auto Multi-Server)</option>
+                    <option value="rapid">🚀 Premium RapidAPI (Fast Key Backup)</option>
+                </select>
+                <button class="btn-extract" id="btnExtractScript" onclick="extractTranscript()"><span class="material-icons-round">subtitles</span> पूरा स्क्रिप्ट (Transcript) निकालें</button>
+            </div>
+
+            <!-- MASTER GEMINI GENERATE BUTTON -->
+            <button class="btn-ai-generate" id="btnAiGen" onclick="generateAiScriptMaster()"><span class="material-icons-round">auto_awesome</span> जेमिनी AI से कंटेंट पैकेज जनरेट करें</button>
+        </div>
+
+        <!-- 3. AI GENERATED PACK -->
+        <div class="section-box ai-result-section" id="aiResultCard">
+            <div class="section-header" style="border-color: rgba(168, 85, 247, 0.3);">
+                <div class="section-title">
+                    <span class="material-icons-round" style="color:#d8b4fe;">smart_toy</span>
+                    <span style="color:#e9d5ff;">3. AI Generated Content Pack</span>
+                </div>
+                <span class="badge-pill" style="background:rgba(168,85,247,0.2); color:#f0abfc; border-color:#a855f7;">Ready to Post</span>
+            </div>
+
+            <!-- AI Title -->
+            <div class="ai-card">
+                <div class="ai-card-head">
+                    <span><span class="material-icons-round">text_fields</span> 1. New SEO Title</span>
+                    <button class="btn-mini" onclick="copyText('aiTitleOut', this)"><span class="material-icons-round" style="font-size:12px;">content_copy</span> Copy</button>
+                </div>
+                <div class="content-view" id="aiTitleOut" style="font-weight:bold; color:#fff; font-size:0.95rem;"></div>
+            </div>
+
+            <!-- AI Voiceover Script -->
+            <div class="ai-card">
+                <div class="ai-card-head">
+                    <span><span class="material-icons-round">mic</span> 2. Voiceover Script</span>
+                    <div style="display:flex; gap:6px;">
+                        <button class="btn-mini" onclick="downloadAiScript()"><span class="material-icons-round" style="font-size:12px;">download</span> TXT</button>
+                        <button class="btn-mini" onclick="copyText('aiScriptOut', this)"><span class="material-icons-round" style="font-size:12px;">content_copy</span> Copy</button>
+                    </div>
+                </div>
+                <div class="content-view large" id="aiScriptOut" style="font-size:0.95rem; line-height:1.8; color:#f5f3ff;"></div>
+            </div>
+
+            <!-- AI Description -->
+            <div class="ai-card">
+                <div class="ai-card-head">
+                    <span><span class="material-icons-round">segment</span> 3. Hijack Description</span>
+                    <button class="btn-mini" onclick="copyText('aiDescOut', this)"><span class="material-icons-round" style="font-size:12px;">content_copy</span> Copy</button>
+                </div>
+                <div class="content-view large" id="aiDescOut" style="color:#e2e8f0;"></div>
+            </div>
+
+            <!-- AI Viral Tags -->
+            <div class="ai-card">
+                <div class="ai-card-head">
+                    <span><span class="material-icons-round">label</span> 4. Viral SEO Tags</span>
+                    <button class="btn-mini" onclick="copyText('aiTagsOut', this)"><span class="material-icons-round" style="font-size:12px;">content_copy</span> Copy</button>
+                </div>
+                <div class="content-view" id="aiTagsOut" style="color:#c084fc;"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+        <span>&copy; Aryan News AI Tech • All Rights Reserved</span>
+    </footer>
+
+    <!-- SIDEBAR SETTINGS -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-head">
+            <h3 style="font-size:1.1rem; color:#fff; display:flex; align-items:center; gap:8px;"><span class="material-icons-round" style="color:var(--primary);">settings</span> API Settings</h3>
+            <button class="icon-btn" onclick="toggleSidebar()"><span class="material-icons-round">close</span></button>
+        </div>
+
+        <div class="sidebar-group">
+            <label>YouTube Worker URL</label>
+            <input type="text" id="ytApiUrl">
+        </div>
+
+        <div class="sidebar-group">
+            <label>Gemini Worker URL</label>
+            <input type="text" id="geminiApiUrl">
+        </div>
+
+        <div class="sidebar-group">
+            <label>RapidAPI Transcript Key</label>
+            <input type="text" id="rapidApiKey" placeholder="X-RapidAPI-Key डालें...">
+        </div>
+
+        <button class="btn-action" style="width:100%; height:46px; margin-top:10px;" onclick="saveSettings()"><span class="material-icons-round">save</span> Save Settings</button>
+    </div>
+
+    <input type="hidden" id="currentSelectedChannel" value="">
+    <input type="hidden" id="currentVideoId" value="">
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        const YT_WORKER = "https://youtube-api.babu902654.workers.dev";
+        const GEMINI_WORKER = "https://storystudio-api.babu902654.workers.dev";
+
+        let competitors = JSON.parse(localStorage.getItem("aryan_competitors") || "[]");
+
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('ytApiUrl').value = localStorage.getItem("yt_api_url") || YT_WORKER;
+            document.getElementById('geminiApiUrl').value = localStorage.getItem("gemini_api_url") || GEMINI_WORKER;
+            document.getElementById('rapidApiKey').value = localStorage.getItem("myRapidApiKey") || "";
+            updateCompBadge();
+            if(competitors.length > 0) loadAllChannels();
+            updateGeminiBtnLabel();
+        });
+
+        function toggleSidebar() {
+            const sb = document.getElementById('sidebar'), ov = document.getElementById('sidebarOverlay');
+            if (sb.classList.contains('open')) { sb.classList.remove('open'); ov.style.display = 'none'; }
+            else { sb.classList.add('open'); ov.style.display = 'block'; }
+        }
+
+        function saveSettings() {
+            localStorage.setItem("yt_api_url", document.getElementById('ytApiUrl').value.trim());
+            localStorage.setItem("gemini_api_url", document.getElementById('geminiApiUrl').value.trim());
+            localStorage.setItem("myRapidApiKey", document.getElementById('rapidApiKey').value.trim());
+            toggleSidebar();
+            alert("✅ सेटिंग्स सुरक्षित हो गईं!");
+        }
+
+        const updateCompBadge = () => { document.getElementById('compCount').innerText = `${competitors.length} Channels`; };
+
+        function extractHandle(str) {
+            const m = str.trim().match(/@([a-zA-Z0-9_.-]+)/);
+            return m ? '@' + m[1] : '@' + str.trim().replace(/^@/, '');
+        }
+
+        function addCompetitor() {
+            const val = document.getElementById('compInput').value.trim();
+            if(!val) return;
+            const handle = extractHandle(val);
+            if(!competitors.includes(handle)) {
+                competitors.unshift(handle);
+                localStorage.setItem("aryan_competitors", JSON.stringify(competitors));
+            }
+            document.getElementById('compInput').value = '';
+            updateCompBadge();
+            loadAllChannels();
+        }
+
+        function removeCompetitor(handle) {
+            competitors = competitors.filter(c => c !== handle);
+            localStorage.setItem("aryan_competitors", JSON.stringify(competitors));
+            updateCompBadge();
+            loadAllChannels();
+        }
+
+        function calculateTimeAgo(dateStr) {
+            if(!dateStr) return "कुछ समय पहले";
+            try {
+                const past = new Date(dateStr);
+                if(isNaN(past.getTime())) return dateStr || "हाल ही में";
+                const now = new Date();
+                const diffSec = Math.floor((now - past) / 1000);
+
+                if (diffSec < 60) return "अभी-अभी";
+                const diffMin = Math.floor(diffSec / 60);
+                if (diffMin < 60) return `${diffMin} मिनट पहले`;
+                const diffHours = Math.floor(diffMin / 60);
+                if (diffHours < 24) return `${diffHours} घंटे पहले`;
+                const diffDays = Math.floor(diffHours / 24);
+                if (diffDays < 30) return `${diffDays} दिन पहले`;
+                return `${Math.floor(diffDays / 30)} महीने पहले`;
+            } catch(e) {
+                return "हाल ही में";
+            }
+        }
+
+        async function loadAllChannels() {
+            const container = document.getElementById('channelsContainer');
+            if(competitors.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:18px; color:var(--text-muted); font-size:0.88rem;">कोई कंपीटीटर चैनल नहीं है। ऊपर @username डालकर Add करें।</div>`;
+                return;
+            }
+            container.innerHTML = '';
+            for(let handle of competitors) {
+                const safeId = 'ch_' + handle.replace('@','').replace(/[^a-zA-Z0-9]/g,'_');
+                container.innerHTML += `
+                    <div class="channel-card" id="${safeId}">
+                        <div class="channel-top">
+                            <div class="channel-title">
+                                <span class="material-icons-round" style="color:var(--primary); font-size:20px;">account_circle</span>
+                                <span>${handle}</span>
+                                <small style="color:#10b981; font-size:0.68rem; font-weight:800; background:rgba(16,185,129,0.15); padding:2px 6px; border-radius:4px;">(Live 72h)</small>
+                            </div>
+                            <button class="btn-del" onclick="removeCompetitor('${handle}')"><span class="material-icons-round" style="font-size:19px;">delete</span></button>
+                        </div>
+                        <div class="video-scroll" id="list_${safeId}">
+                            <div style="font-size:0.8rem; color:var(--text-muted); padding:6px;">हालिया वीडियो लोड हो रहे हैं...</div>
+                        </div>
+                    </div>
+                `;
+                fetchChannelVideos(handle, safeId);
+            }
+        }
+
+        async function fetchChannelVideos(handle, safeId) {
+            const listEl = document.getElementById(`list_${safeId}`);
+            const ytWorker = localStorage.getItem("yt_api_url") || YT_WORKER;
+            let items = [];
+
+            try {
+                const res = await fetch(`${ytWorker}/?channel_id=${encodeURIComponent(handle)}`);
+                if(res.ok) {
+                    const text = await res.text();
+                    if(text.trim().startsWith('<')) {
+                        const parser = new DOMParser();
+                        const xml = parser.parseFromString(text, "text/xml");
+                        const entries = xml.getElementsByTagName("entry");
+                        for(let i=0; i<Math.min(8, entries.length); i++) {
+                            const title = entries[i].getElementsByTagName("title")[0]?.textContent || 'No Title';
+                            const vid = entries[i].getElementsByTagName("yt:videoId")[0]?.textContent;
+                            const publishedRaw = entries[i].getElementsByTagName("published")[0]?.textContent || entries[i].getElementsByTagName("updated")[0]?.textContent || '';
+                            if(vid) items.push({ title, videoId: vid, published: calculateTimeAgo(publishedRaw) });
+                        }
+                    } else {
+                        const json = JSON.parse(text);
+                        if(json.items) {
+                            items = json.items.map(item => ({
+                                title: item.title,
+                                videoId: item.videoId,
+                                published: calculateTimeAgo(item.published || item.publishedAt || item.time)
+                            }));
+                        }
+                    }
+                }
+            } catch(e) {}
+
+            if(items.length > 0) {
+                let html = '';
+                items.forEach(v => {
+                    const safeTitle = encodeURIComponent(v.title);
+                    html += `
+                        <div class="video-item" onclick="selectVideo('${v.videoId}', '${safeTitle}', '${encodeURIComponent(handle)}')">
+                            <img src="https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg" class="video-thumb" onerror="this.src='https://via.placeholder.com/98x56/1e293b/3b82f6?text=News'">
+                            <div class="video-info">
+                                <h4>${v.title}</h4>
+                                <small><span class="material-icons-round" style="font-size:13px;">schedule</span> ${v.published}</small>
+                            </div>
+                        </div>
+                    `;
+                });
+                listEl.innerHTML = html;
+            } else {
+                listEl.innerHTML = `<div style="font-size:0.78rem; color:#f87171; padding:6px;">वीडियो लोड नहीं हो सके। <button onclick="fetchChannelVideos('${handle}','${safeId}')" style="background:none; border:none; color:var(--primary); cursor:pointer; text-decoration:underline;">रीट्राई</button></div>`;
+            }
+        }
+
+        // DYNAMIC BUTTON LABEL UPDATE
+        function updateGeminiBtnLabel() {
+            const title = document.getElementById('origTitleVal')?.innerText || '';
+            const tags = document.getElementById('origTagsVal')?.innerText || '';
+            const desc = document.getElementById('origDescVal')?.innerText || '';
+            const script = document.getElementById('origScriptVal')?.innerText || '';
+
+            let parts = [];
+            if (title && !title.includes('वीडियो लिस्ट में से')) parts.push('Title');
+            if (tags && !tags.includes('लोड होंगे') && !tags.includes('⏳')) parts.push('Tags');
+            if (desc && !desc.includes('लोड होगा') && !desc.includes('⏳')) parts.push('Desc');
+            if (script && !script.includes('नीचे') && !script.includes('⏳') && !script.includes('कोई सबटाइटल नहीं')) parts.push('Script');
+
+            const labelStr = parts.length > 0 ? parts.join(' + ') : 'Title';
+            const btn = document.getElementById('btnAiGen');
+            if(btn) {
+                btn.innerHTML = `<span class="material-icons-round">auto_awesome</span> जेमिनी AI से कंटेंट पैकेज जनरेट करें (${labelStr})`;
+            }
+        }
+
+        // SELECT VIDEO
+        async function selectVideo(videoId, encodedTitle, encodedChannel) {
+            const title = decodeURIComponent(encodedTitle);
+            const channel = decodeURIComponent(encodedChannel);
+
+            document.getElementById('currentVideoId').value = videoId;
+            document.getElementById('currentSelectedChannel').value = channel;
+
+            document.getElementById('activeVidStatus').innerText = "एक्टिव वीडियो";
+            document.getElementById('vidUrlVal').value = `https://www.youtube.com/watch?v=${videoId}`;
+            document.getElementById('origTitleVal').innerText = title;
+
+            // Reset transcript field
+            document.getElementById('origScriptVal').innerText = "नीचे 'पूरा स्क्रिप्ट निकालें' बटन दबाएँ...";
+
+            // Embed Player
+            const pWrap = document.getElementById('playerWrap');
+            pWrap.style.display = "block";
+            document.getElementById('ytIframe').src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+
+            document.getElementById('studioWorkArea').scrollIntoView({ behavior: 'smooth' });
+
+            updateGeminiBtnLabel();
+
+            // FETCH REAL YOUTUBE FULL DESCRIPTION & REAL TAGS
+            fetchAllVideoMetadata(videoId, title);
+        }
+
+        // MULTI-ENGINE REAL YOUTUBE METADATA SCRAPER (PIPED / INVIDIOUS / WORKER API)
+        async function fetchAllVideoMetadata(videoId, titleFallback) {
+            const tagBox = document.getElementById('origTagsVal');
+            const descBox = document.getElementById('origDescVal');
+
+            tagBox.innerHTML = `<em>⏳ असली टैग्स खोजे जा रहे हैं...</em>`;
+            descBox.innerHTML = `<em>⏳ असली पूरा विवरण लोड हो रहा है...</em>`;
+
+            let realTags = [];
+            let realDesc = "";
+
+            // High-Speed YouTube Data Stream Endpoints (Return 100% Real Full Description & Tags)
+            const apis = [
+                `https://pipedapi.kavin.rocks/streams/${videoId}`,
+                `https://api.piped.video/streams/${videoId}`,
+                `https://invidious.nerdvpn.de/api/v1/videos/${videoId}`,
+                `${localStorage.getItem("yt_api_url") || YT_WORKER}/?videoId=${videoId}`
+            ];
+
+            for (let url of apis) {
+                try {
+                    const res = await fetch(url);
+                    if (res.ok) {
+                        const data = await res.json();
+
+                        // Parse Tags
+                        if (data.tags && Array.isArray(data.tags) && data.tags.length > 0) {
+                            realTags = data.tags;
+                        } else if (data.keywords && Array.isArray(data.keywords) && data.keywords.length > 0) {
+                            realTags = data.keywords;
+                        }
+
+                        // Parse Full Multiline Description
+                        if (data.description && typeof data.description === 'string' && data.description.trim().length > 10) {
+                            realDesc = data.description.trim();
+                        } else if (data.desc && typeof data.desc === 'string' && data.desc.trim().length > 10) {
+                            realDesc = data.desc.trim();
+                        }
+
+                        if (realDesc.length > 10) break;
+                    }
+                } catch(e) {}
+            }
+
+            // Populate Real Tags
+            if (realTags.length > 0) {
+                tagBox.innerText = realTags.join(', ');
+            } else {
+                // If YouTube video has no keywords set by creator
+                const words = (titleFallback || document.getElementById('origTitleVal').innerText)
+                    .replace(/[^\w\s\u0900-\u097F]/gi, ' ')
+                    .split(/\s+/)
+                    .filter(w => w.length > 2);
+                tagBox.innerText = [...new Set(words)].slice(0, 10).join(', ');
+            }
+
+            // Populate Real Full Description
+            if (realDesc.length > 10) {
+                descBox.innerText = realDesc;
+            } else {
+                descBox.innerText = `ओरिजिनल विवरण प्राप्त नहीं हुआ। AI शीर्षक का उपयोग करके पूरी सामग्री जनरेट करेगा।`;
+            }
+
+            updateGeminiBtnLabel();
+        }
+
+        // EXTRACT TRANSCRIPT
+        async function extractTranscript() {
+            const videoId = document.getElementById('currentVideoId').value;
+            const videoUrl = document.getElementById('vidUrlVal').value;
+            const mode = document.getElementById('transcriptModeSelect').value;
+            const btn = document.getElementById('btnExtractScript');
+            const scriptBox = document.getElementById('origScriptVal');
+
+            if(!videoId) return alert("⚠️ कृपया पहले लिस्ट से कोई वीडियो चुनें!");
+
+            const originalBtnHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<span class="btn-spinner"></span> ट्रांसक्रिप्ट निकाली जा रही है...`;
+            scriptBox.innerText = "⏳ स्क्रिप्ट निकाली जा रही है, कृपया प्रतीक्षा करें...";
+
+            let finalTranscript = "";
+
+            if (mode === "public") {
+                const ytWorker = localStorage.getItem("yt_api_url") || YT_WORKER;
+                try {
+                    const res = await fetch(`${ytWorker}/?videoId=${videoId}`);
+                    if(res.ok) {
+                        const data = await res.json();
+                        if(data.transcript && data.transcript.trim().length > 10) {
+                            finalTranscript = data.transcript.trim();
+                        }
+                    }
+                } catch(e) {}
+
+                if(!finalTranscript) {
+                    try {
+                        const r = await fetch('https://api.kome.ai/api/tools/youtube-transcripts', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ video_id: videoId, format: true })
+                        });
+                        if(r.ok) {
+                            const kd = await r.json();
+                            if(kd.transcript) finalTranscript = kd.transcript;
+                        }
+                    } catch(e) {}
+                }
+            } else if (mode === "rapid") {
+                const rapidKey = localStorage.getItem("myRapidApiKey");
+                if(!rapidKey) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalBtnHtml;
+                    toggleSidebar();
+                    alert("⚠️ कृपया सेटिंग्स (⚙️) में जाकर अपनी RapidAPI Key डालें!");
+                    return;
+                }
+
+                try {
+                    const res = await fetch(`https://youtube-transcript3.p.rapidapi.com/api/transcript-with-url?url=${encodeURIComponent(videoUrl)}&flat_text=true&lang=hi`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-rapidapi-host': 'youtube-transcript3.p.rapidapi.com',
+                            'x-rapidapi-key': rapidKey
+                        }
+                    });
+                    const d = await res.json();
+                    if(d.transcript) finalTranscript = typeof d.transcript === 'string' ? d.transcript : JSON.stringify(d.transcript);
+                    else if(d.data) finalTranscript = d.data;
+                } catch(e) {}
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = originalBtnHtml;
+
+            if(finalTranscript && finalTranscript.length > 20) {
+                scriptBox.innerText = finalTranscript;
+            } else {
+                scriptBox.innerText = "इस वीडियो में कोई सबटाइटल नहीं मिला। AI टाइटल और विवरण से पूरी स्क्रिप्ट तैयार करेगा।";
+            }
+
+            updateGeminiBtnLabel();
+        }
+
+        // SAFE TEXT CLEANER FOR AI PROMPT
+        function sanitizeTextForAI(str) {
+            if (!str) return "";
+            return str
+                .replace(/[\u0000-\u001F\u007F-\u009F]/g, " ")
+                .replace(/\\/g, "/")
+                .replace(/"/g, "'")
+                .replace(/\r/g, " ")
+                .replace(/\n+/g, " ")
+                .trim();
+        }
+
+        // GEMINI AI MASTER GENERATOR (MULTI-PAYLOAD FALLBACK ENGINE PREVENTS STATUS 400)
+        async function generateAiScriptMaster() {
+            const rawTitle = document.getElementById('origTitleVal').innerText.trim();
+            const rawChannel = document.getElementById('currentSelectedChannel').value.trim();
+            const rawTags = document.getElementById('origTagsVal').innerText.trim();
+            const rawDesc = document.getElementById('origDescVal').innerText.trim();
+            const rawScript = document.getElementById('origScriptVal').innerText.trim();
+            const geminiUrl = localStorage.getItem("gemini_api_url") || GEMINI_WORKER;
+            const btn = document.getElementById('btnAiGen');
+
+            if(!rawTitle || rawTitle.includes("वीडियो लिस्ट में से")) {
+                return alert("⚠️ कृपया पहले लिस्ट में से कोई वीडियो चुनें!");
+            }
+
+            const originalBtnHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<span class="btn-spinner"></span> जेमिनी AI जनरेट कर रहा है...`;
+
+            // Clean input text safely
+            const cleanTitle = sanitizeTextForAI(rawTitle);
+            const cleanChannel = sanitizeTextForAI(rawChannel);
+            
+            let cleanTags = rawTags.includes('लोड होंगे') || rawTags.includes('⏳') ? "" : sanitizeTextForAI(rawTags).substring(0, 300);
+            let cleanDesc = rawDesc.includes('लोड होगा') || rawDesc.includes('⏳') ? "" : sanitizeTextForAI(rawDesc).substring(0, 1000);
+            let cleanScript = rawScript.includes('नीचे') || rawScript.includes('⏳') || rawScript.includes('कोई सबटाइटल नहीं') ? "" : sanitizeTextForAI(rawScript).substring(0, 3000);
+
+            // Construct flexible prompt based on available inputs
+            let promptText = `तुम एक यूट्यूब न्यूज़ एंकर और SEO विशेषज्ञ हो।\n\n`;
+            promptText += `[COMPETITOR VIDEO DATA]:\n`;
+            promptText += `- शीर्षक (Title): ${cleanTitle}\n`;
+            if(cleanChannel) promptText += `- कंपीटीटर चैनल: ${cleanChannel}\n`;
+            if(cleanTags) promptText += `- कंपीटीटर टैग्स (Tags): ${cleanTags}\n`;
+            if(cleanDesc) promptText += `- ओरिजिनल पूरा विवरण (Desc): ${cleanDesc}\n`;
+            if(cleanScript) promptText += `- ओरिजिनल ट्रांसक्रिप्ट (Script): ${cleanScript}\n`;
+
+            promptText += `\n[INSTRUCTIONS]:
+ऊपर दिए गए सभी डेटा का गहन विश्लेषण करके नीचे दिए गए 4 ब्लॉक्स में यूट्यूब कंटेंट तैयार करो:
+
+1. [NEW_TITLE]: ओरिजिनल टाइटल का मुख्य अर्थ वही रखें, केवल 1-2 शब्द बदलकर वायरल बनाएं। शुरू में 'बड़ी खबर:' जोड़ें।
+2. [NEW_SCRIPT]: कंपीटीटर के लहजे में 300-400 शब्दों की पूरी हिंदी वॉइसओवर स्क्रिप्ट लिखें। शुरुआत "नमस्कार! आप देख रहे हैं आर्यन न्यूज़ टेक..." से करें।
+3. [NEW_DESC]: पूरा हाइजैक SEO डिस्क्रिप्शन लिखें। चैनल का नाम (${cleanChannel || 'Competitor'}) बहुत स्वाभाविक रूप से शामिल करें।
+4. [NEW_TAGS]: वायरल टैग्स कॉमा से अलग करके लिखें।
+
+कृपया केवल इन 4 ब्लॉक्स में ही उत्तर दें:
+[NEW_TITLE]
+(नया टाइटल)
+
+[NEW_SCRIPT]
+(पूरी वॉइसओवर स्क्रिप्ट)
+
+[NEW_DESC]
+(पूरा SEO डिस्क्रिप्शन)
+
+[NEW_TAGS]
+(सभी टैग्स कॉमा से अलग)`;
+
+            try {
+                let res = null;
+                let payloadVariants = [
+                    { prompt: promptText },
+                    { contents: [{ parts: [{ text: promptText }] }] },
+                    { text: promptText },
+                    { message: promptText }
+                ];
+
+                // Attempt fetching through different payload formats
+                for (let payload of payloadVariants) {
+                    try {
+                        res = await fetch(geminiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        if (res && res.ok) break;
+                    } catch(e) {}
+                }
+
+                // Direct Fallback Engine if custom worker fails
+                if (!res || !res.ok) {
+                    try {
+                        const directUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyD-YourFallbackKeyPlaceHolder";
+                        res = await fetch(directUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
+                        });
+                    } catch(e) {}
+                }
+
+                if (!res || !res.ok) {
+                    const status = res ? res.status : "No Response";
+                    throw new Error(`Gemini Server Error (${status}). कृपया सेटिंग्स में Gemini URL जांचें।`);
+                }
+
+                const data = await res.json();
+                let output = data.response || data.text || data.result || (data.candidates && data.candidates[0].content.parts[0].text) || JSON.stringify(data);
+
+                const extractSection = (str, startTag, endTag) => {
+                    if(!str.includes(startTag)) return "";
+                    let part = str.split(startTag)[1];
+                    if(endTag && part.includes(endTag)) part = part.split(endTag)[0];
+                    return part.trim();
+                };
+
+                const fTitle = extractSection(output, "[NEW_TITLE]", "[NEW_SCRIPT]");
+                const fScript = extractSection(output, "[NEW_SCRIPT]", "[NEW_DESC]");
+                const fDesc = extractSection(output, "[NEW_DESC]", "[NEW_TAGS]");
+                const fTags = extractSection(output, "[NEW_TAGS]", null);
+
+                document.getElementById('aiTitleOut').innerText = fTitle || rawTitle;
+                document.getElementById('aiScriptOut').innerText = fScript || output;
+                document.getElementById('aiDescOut').innerText = fDesc || rawDesc;
+                document.getElementById('aiTagsOut').innerText = fTags || rawTags;
+
+                const resCard = document.getElementById('aiResultCard');
+                resCard.style.display = "block";
+                resCard.scrollIntoView({ behavior: 'smooth' });
+
+            } catch(err) {
+                alert("❌ AI जनरेशन में त्रुटि:\n" + err.message);
+            } finally {
+                btn.disabled = false;
+                updateGeminiBtnLabel();
+            }
+        }
+
+        // UTILITY FUNCTIONS
+        async function copyText(elementId, btn) {
+            await executeClipboardCopy(document.getElementById(elementId).innerText, btn);
+        }
+
+        async function copyValue(inputId, btn) {
+            await executeClipboardCopy(document.getElementById(inputId).value, btn);
+        }
+
+        async function executeClipboardCopy(text, btn) {
+            if(!text) return;
+            const originalHTML = btn.innerHTML;
+            try {
+                if(navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(text);
+                } else {
+                    const ta = document.createElement("textarea");
+                    ta.value = text;
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                }
+                btn.innerHTML = `<span class="material-icons-round" style="font-size:12px; color:#10b981;">check</span> Copied`;
+                setTimeout(() => { btn.innerHTML = originalHTML; }, 1800);
+            } catch(e) {
+                alert("कॉपी नहीं हो पाया!");
+            }
+        }
+
+        function downloadOrigScript() {
+            downloadTxtFile("original-transcript.txt", document.getElementById('origScriptVal').innerText);
+        }
+
+        function downloadAiScript() {
+            downloadTxtFile("aryan-ai-script.txt", document.getElementById('aiScriptOut').innerText);
+        }
+
+        function downloadTxtFile(filename, content) {
+            if(!content) return;
+            const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
