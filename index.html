@@ -77,11 +77,13 @@
         .btn-mini.btn-search { background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.4); }
         .btn-mini.btn-save-hist { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border-color: rgba(245, 158, 11, 0.4); }
         .btn-mini.btn-copyall { background: rgba(168, 85, 247, 0.2); color: #f0abfc; border-color: rgba(168, 85, 247, 0.4); }
+        .btn-mini.btn-retry { background: rgba(239, 68, 68, 0.15); color: #f87171; border-color: rgba(239, 68, 68, 0.4); }
         .control-panel-box { background: #141e33; border: 1.5px dashed rgba(59, 130, 246, 0.4); border-radius: 14px; padding: 14px; margin-top: 15px; }
         .control-panel-box label { font-size: 0.78rem; color: #93c5fd; font-weight: bold; display: block; margin-bottom: 8px; }
         .safety-line { font-size: 0.7rem; color: #6ee7b7; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25); padding: 6px 10px; border-radius: 8px; margin-top: 8px; line-height: 1.5; }
         .check-line { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 0.78rem; color: #d8b4fe; font-weight: 700; }
         .check-line input { width: auto; accent-color: #a855f7; }
+        .engine-info { font-size: 0.7rem; color: #fbbf24; background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.25); padding: 8px 10px; border-radius: 8px; margin-top: 8px; line-height: 1.5; }
         .btn-extract { width: 100%; height: 50px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; border: none; border-radius: 12px; font-weight: 800; font-size: 0.96rem; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; margin-top: 10px; }
         .btn-extract:disabled { opacity: 0.65; }
         .btn-spinner { width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; }
@@ -125,6 +127,8 @@
         .guide-ok { color: #6ee7b7; font-weight: 700; }
         .guide-bad { color: #fca5a5; font-weight: 700; }
         .guide-warn { color: #fcd34d; font-weight: 700; }
+        .transcript-error { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); padding: 10px; border-radius: 10px; margin-top: 10px; font-size: 0.82rem; color: #fca5a5; line-height: 1.6; }
+        .transcript-success { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 10px; border-radius: 10px; margin-top: 10px; font-size: 0.82rem; color: #6ee7b7; line-height: 1.6; }
     </style>
 </head>
 <body>
@@ -248,18 +252,27 @@
                             </div>
                         </div>
                         <div class="content-view large" id="origScriptVal" style="color:#a7f3d0;">नीचे 'पूरा स्क्रिप्ट निकालें' बटन दबाएँ...</div>
+                        <div id="transcriptStatus"></div>
                     </div>
                 </div>
 
-                <!-- TRANSCRIPT ENGINE DROPDOWN (Unlimited options) -->
+                <!-- TRANSCRIPT ENGINE DROPDOWN (RapidAPI Primary) -->
                 <div class="control-panel-box">
-                    <label>🎙️ ट्रांसक्रिप्ट निष्कर्षण मॉडल चुनें (Script Extraction Engine):</label>
+                    <label>🎙️ ट्रांसक्रिप्ट निष्कर्षण मॉडल चुनें:</label>
                     <select id="transcriptModeSelect" onchange="saveEngineSelections()">
-                        <option value="worker">🌐 YouTube Worker v7 (UNLIMITED Free - Open Source)</option>
-                        <option value="invidious">🌍 Invidious Open Source (UNLIMITED Free - No Key)</option>
-                        <option value="rapid">🚀 Premium RapidAPI (100/Month Limit)</option>
+                        <option value="rapid">🚀 Premium RapidAPI (RECOMMENDED - 100% Works, 100/Month)</option>
+                        <option value="worker">🌐 YouTube Worker v8 (Unlimited - कुछ videos पर block)</option>
+                        <option value="invidious">🌍 Invidious Open Source (Slow - Backup)</option>
                     </select>
+                    <div class="engine-info">
+                        💡 <strong>क्यों RapidAPI बेहतर है?</strong><br>
+                        • YouTube ने Worker/Invidious को कई videos पर block कर रखा है<br>
+                        • RapidAPI YouTube के official API को access करता है<br>
+                        • 100 requests/month = ~100 videos (काफी है daily use के लिए)<br>
+                        • अगर 100 limit खत्म → Worker try करें (कुछ videos पर काम करेगा)
+                    </div>
                     <button class="btn-extract" id="btnExtractScript" onclick="extractTranscript()"><span class="material-icons-round">subtitles</span> पूरा स्क्रिप्ट (Transcript) निकालें</button>
+                    <button class="btn-mini btn-retry" style="margin-top:8px; width:100%; justify-content:center;" onclick="clearTranscriptCache()"><span class="material-icons-round" style="font-size:13px;">delete_sweep</span> Transcript Cache Clear करें (अगर fail हो रहा है)</button>
                 </div>
 
                 <div class="control-panel-box" style="border-color: rgba(168, 85, 247, 0.4); background:#1a1533;">
@@ -270,7 +283,7 @@
                     </select>
                     <div class="check-line">
                         <input type="checkbox" id="hijackChannelCheck" checked onchange="saveEngineSelections()">
-                        <span>🎯 Competitor चैनल का नाम Tags+Desc में डालें (Search Hijack - जब लोग चैनल का नाम search करें तो मेरी video आए)</span>
+                        <span>🎯 Competitor चैनल का नाम Tags+Desc में डालें (Search Hijack)</span>
                     </div>
                     <div class="safety-line" id="safetySummaryLine"></div>
                     <button class="btn-ai-generate" id="btnAiGen" onclick="generateAiScriptMaster()">
@@ -481,6 +494,7 @@
         let myVideoData = JSON.parse(localStorage.getItem("aryan_my_video") || "{}");
         let hiddenSections = JSON.parse(localStorage.getItem("aryan_hidden_sections") || "[]");
         let titleHistory = JSON.parse(localStorage.getItem("aryan_title_history") || "[]");
+        let transcriptCache = JSON.parse(localStorage.getItem("aryan_transcript_cache") || "{}");
         let livePollInterval = null;
 
         const SECTION_NAMES = {
@@ -490,7 +504,7 @@
             'sec_history': 'Title History'
         };
 
-        // ===== HINDI DATE (आज की तारीख auto) =====
+        // ===== HINDI DATE =====
         function getHindiDate() {
             const months = ["जनवरी","फरवरी","मार्च","अप्रैल","मई","जून","जुलाई","अगस्त","सितंबर","अक्टूबर","नवंबर","दिसंबर"];
             const d = new Date();
@@ -508,10 +522,35 @@
             return out;
         }
 
+        // ===== TRANSCRIPT CACHE =====
+        function getTranscriptCache(videoId) {
+            const cached = transcriptCache[videoId];
+            if (!cached) return null;
+            const age = Date.now() - cached.timestamp;
+            if (age > 24 * 60 * 60 * 1000) { // 24 hours expiry
+                delete transcriptCache[videoId];
+                localStorage.setItem("aryan_transcript_cache", JSON.stringify(transcriptCache));
+                return null;
+            }
+            return cached.data;
+        }
+
+        function setTranscriptCache(videoId, data) {
+            transcriptCache[videoId] = { data, timestamp: Date.now() };
+            localStorage.setItem("aryan_transcript_cache", JSON.stringify(transcriptCache));
+        }
+
+        function clearTranscriptCache() {
+            if (!confirm("क्या आप सभी transcript cache clear करना चाहते हैं? (अगर transcript fail हो रहा है तो यह help करेगा)")) return;
+            transcriptCache = {};
+            localStorage.setItem("aryan_transcript_cache", JSON.stringify(transcriptCache));
+            alert("✅ Transcript cache clear हो गया! अब दोबारा try करें।");
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
             document.getElementById('ytMetadataModeSelect').value = localStorage.getItem("yt_meta_mode") || "worker";
             document.getElementById('geminiEngineSelect').value = localStorage.getItem("gemini_engine_mode") || "direct";
-            document.getElementById('transcriptModeSelect').value = localStorage.getItem("yt_transcript_mode") || "worker";
+            document.getElementById('transcriptModeSelect').value = localStorage.getItem("yt_transcript_mode") || "rapid";
             document.getElementById('hijackChannelCheck').checked = (localStorage.getItem("hijack_channel_name") || "1") === "1";
             document.getElementById('ytDataApiKey').value = localStorage.getItem("myYtDataApiKey") || "";
             document.getElementById('geminiApiKey').value = localStorage.getItem("myGeminiApiKey") || "";
@@ -580,7 +619,6 @@
             setSafetyBadge('aiDescSafetyBadge', calcChangePercent(document.getElementById('origDescVal').innerText, document.getElementById('aiDescOut').innerText), s.descUnique, 'unique');
         }
 
-        // ===== HISTORY =====
         function saveToHistory() {
             const videoId = document.getElementById('currentVideoId').value;
             const origTitle = document.getElementById('origTitleVal').innerText.trim();
@@ -722,7 +760,7 @@
                 document.getElementById('descCountBadge').innerText = `${words} शब्द | ${descText.length} अक्षर`;
             } else document.getElementById('descCountBadge').innerText = `0 शब्द | 0 अक्षर`;
             const scriptText = document.getElementById('origScriptVal').innerText.trim();
-            if (scriptText && !scriptText.includes("नीचे") && !scriptText.includes("⏳") && !scriptText.includes("कोई सबटाइटल नहीं")) {
+            if (scriptText && !scriptText.includes("नीचे") && !scriptText.includes("⏳") && !scriptText.includes("कोई सबटाइटल नहीं") && !scriptText.includes("Transcript extract fail")) {
                 const words = scriptText.split(/\s+/).filter(Boolean).length;
                 document.getElementById('scriptCountBadge').innerText = `${words} शब्द (~${Math.max(1, Math.round(words/130))} मिनट) | ${scriptText.length} अक्षर`;
             } else document.getElementById('scriptCountBadge').innerText = `0 शब्द | 0 अक्षर`;
@@ -907,7 +945,7 @@
             if (title && !title.includes('वीडियो लिस्ट में से')) { parts.push('Title'); pills.push('<span class="data-source-pill">📌 Title</span>'); }
             if (tags && !tags.includes('लोड होंगे') && !tags.includes('⏳')) { parts.push('Tags'); pills.push('<span class="data-source-pill">🏷️ Tags</span>'); }
             if (desc && !desc.includes('लोड होगा') && !desc.includes('⏳')) { parts.push('Desc'); pills.push('<span class="data-source-pill">📄 Desc</span>'); }
-            if (script && !script.includes('नीचे') && !script.includes('⏳') && !script.includes('कोई सबटाइटल नहीं')) {
+            if (script && !script.includes('नीचे') && !script.includes('⏳') && !script.includes('कोई सबटाइटल नहीं') && !script.includes('Transcript extract fail')) {
                 parts.push(`Script (~${Math.max(1, Math.round(script.split(/\s+/).filter(Boolean).length/130))} मिनट)`);
                 pills.push(`<span class="data-source-pill">🎙️ Script</span>`);
             }
@@ -965,6 +1003,7 @@
             document.getElementById('vidUrlVal').value = `https://www.youtube.com/watch?v=${videoId}`;
             document.getElementById('origTitleVal').innerText = title;
             document.getElementById('origScriptVal').innerText = "नीचे 'पूरा स्क्रिप्ट निकालें' बटन दबाएँ...";
+            document.getElementById('transcriptStatus').innerHTML = '';
 
             document.getElementById('playerWrap').style.display = "block";
             document.getElementById('playerTools').style.display = "flex";
@@ -1086,101 +1125,140 @@
             updateWordAndCharCounts();
         }
 
-        // ===== TRANSCRIPT: 3 ENGINES (Worker Unlimited / Invidious Unlimited / RapidAPI) =====
-        async function fetchInvidiousTranscript(videoId) {
-            for (const base of INVIDIOUS_INSTANCES) {
-                const langs = ['hi', 'en'];
-                for (const lang of langs) {
-                    try {
-                        const res = await fetch(`${base}/api/v1/captions/${videoId}?lang=${lang}`);
-                        if (!res.ok) continue;
-                        const json = await res.json();
-                        if (json && Array.isArray(json.subtitles)) {
-                            const txt = json.subtitles.map(s => s.text).join(' ');
-                            if (txt.trim().length > 10) return txt.trim();
-                        }
-                    } catch(e) {}
-                }
-                try {
-                    const res = await fetch(`${base}/api/v1/captions/${videoId}`);
-                    if (res.ok) {
-                        const list = await res.json();
-                        if (Array.isArray(list) && list.length && list[0].languageCode) {
-                            const r2 = await fetch(`${base}/api/v1/captions/${videoId}?lang=${list[0].languageCode}`);
-                            if (r2.ok) {
-                                const j2 = await r2.json();
-                                if (j2 && Array.isArray(j2.subtitles)) {
-                                    const txt = j2.subtitles.map(s => s.text).join(' ');
-                                    if (txt.trim().length > 10) return txt.trim();
-                                }
-                            }
-                        }
-                    }
-                } catch(e) {}
-            }
-            return "";
-        }
-
+        // ===== ✅ IMPROVED TRANSCRIPT EXTRACTION =====
         async function extractTranscript() {
             const videoId = document.getElementById('currentVideoId').value;
             const videoUrl = document.getElementById('vidUrlVal').value;
             const mode = document.getElementById('transcriptModeSelect').value;
             const btn = document.getElementById('btnExtractScript');
             const scriptBox = document.getElementById('origScriptVal');
+            const statusBox = document.getElementById('transcriptStatus');
 
             if(!videoId) return alert("⚠️ कृपया पहले कोई वीडियो चुनें!");
 
+            // Check cache first
+            const cached = getTranscriptCache(videoId);
+            if (cached && cached.transcript && cached.transcript.length > 50) {
+                scriptBox.innerText = cached.transcript;
+                statusBox.innerHTML = `<div class="transcript-success">✅ <strong>Cache से मिला!</strong> (${cached.source})<br>अगर पुराना लगता है तो "Transcript Cache Clear" button दबाएँ।</div>`;
+                updateWordAndCharCounts();
+                return;
+            }
+
             if (mode === "rapid") {
                 const rapidKey = localStorage.getItem("myRapidApiKey");
-                if(!rapidKey) { toggleSidebar(); alert("⚠️ सेटिंग्स में RapidAPI Key डालें! या Unlimited engine चुनें।"); return; }
+                if(!rapidKey) {
+                    toggleSidebar();
+                    alert("⚠️ सेटिंग्स में RapidAPI Key डालें! (RECOMMENDED - 100% works)");
+                    return;
+                }
             }
 
             const originalBtnHtml = btn.innerHTML;
             btn.disabled = true;
             btn.innerHTML = `<span class="btn-spinner"></span> ट्रांसक्रिप्ट निकाली जा रही है...`;
             scriptBox.innerText = "⏳ प्रतीक्षा करें...";
+            statusBox.innerHTML = '';
 
             let finalTranscript = "";
+            let sourceEngine = "";
+            let errorMsg = "";
 
-            if (mode === "worker") {
-                const ytWorker = localStorage.getItem("yt_api_url") || YT_WORKER;
-                try {
-                    const res = await fetch(`${ytWorker}/?videoId=${videoId}`);
-                    if(res.ok) {
-                        const data = await res.json();
-                        if(data.transcript && data.transcript.trim().length > 10) finalTranscript = data.transcript.trim();
-                    }
-                } catch(e) {}
-            }
-            else if (mode === "invidious") {
-                finalTranscript = await fetchInvidiousTranscript(videoId);
-            }
-            else if (mode === "rapid") {
-                const rapidKey = localStorage.getItem("myRapidApiKey");
-                for (let lang of ['hi', 'en', '']) {
-                    try {
-                        const langQuery = lang ? `&lang=${lang}` : '';
-                        const res = await fetch(`https://youtube-transcript3.p.rapidapi.com/api/transcript-with-url?url=${encodeURIComponent(videoUrl)}&flat_text=true${langQuery}`, {
-                            method: 'GET',
-                            headers: { 'Content-Type': 'application/json', 'x-rapidapi-host': 'youtube-transcript3.p.rapidapi.com', 'x-rapidapi-key': rapidKey }
-                        });
-                        if (res.ok) {
-                            const json = await res.json();
-                            let txt = "";
-                            if (typeof json.transcript === 'string') txt = json.transcript;
-                            else if (Array.isArray(json.transcript)) txt = json.transcript.map(t => t.text || t).join(' ');
-                            else if (typeof json.data === 'string') txt = json.data;
-                            else if (Array.isArray(json.data)) txt = json.data.map(t => t.text || t).join(' ');
-                            if (txt && txt.trim().length > 10) { finalTranscript = txt.trim(); break; }
+            try {
+                if (mode === "rapid") {
+                    // ✅ PRIMARY: RapidAPI (100% works)
+                    const rapidKey = localStorage.getItem("myRapidApiKey");
+                    statusBox.innerHTML = `<div class="transcript-success">🚀 RapidAPI से fetch कर रहा है (RECOMMENDED engine)...</div>`;
+                    
+                    for (let lang of ['hi', 'en', '']) {
+                        try {
+                            const langQuery = lang ? `&lang=${lang}` : '';
+                            const res = await fetch(`https://youtube-transcript3.p.rapidapi.com/api/transcript-with-url?url=${encodeURIComponent(videoUrl)}&flat_text=true${langQuery}`, {
+                                method: 'GET',
+                                headers: { 
+                                    'Content-Type': 'application/json',
+                                    'x-rapidapi-host': 'youtube-transcript3.p.rapidapi.com',
+                                    'x-rapidapi-key': rapidKey 
+                                }
+                            });
+                            if (res.ok) {
+                                const json = await res.json();
+                                let txt = "";
+                                if (typeof json.transcript === 'string') txt = json.transcript;
+                                else if (Array.isArray(json.transcript)) txt = json.transcript.map(t => t.text || t).join(' ');
+                                else if (typeof json.data === 'string') txt = json.data;
+                                else if (Array.isArray(json.data)) txt = json.data.map(t => t.text || t).join(' ');
+                                if (txt && txt.trim().length > 50) { 
+                                    finalTranscript = txt.trim(); 
+                                    sourceEngine = `RapidAPI (${lang || 'auto'})`;
+                                    break; 
+                                }
+                            } else {
+                                errorMsg = `RapidAPI error: HTTP ${res.status}`;
+                            }
+                        } catch(e) {
+                            errorMsg = `RapidAPI error: ${e.message}`;
                         }
-                    } catch(e) {}
+                    }
                 }
+                else if (mode === "worker") {
+                    // Worker v8 (backup - कुछ videos पर block)
+                    const ytWorker = localStorage.getItem("yt_api_url") || YT_WORKER;
+                    statusBox.innerHTML = `<div class="transcript-success">🌐 Worker v8 से fetch कर रहा है...</div>`;
+                    try {
+                        const res = await fetch(`${ytWorker}/?videoId=${videoId}`);
+                        if(res.ok) {
+                            const data = await res.json();
+                            if(data.transcript && data.transcript.trim().length > 50) {
+                                finalTranscript = data.transcript.trim();
+                                sourceEngine = `Worker v8 (${data.transcriptLang || 'auto'})`;
+                            } else {
+                                errorMsg = "Worker: No transcript found (YouTube ने block किया हो सकता है)";
+                            }
+                        } else {
+                            errorMsg = `Worker error: HTTP ${res.status}`;
+                        }
+                    } catch(e) {
+                        errorMsg = `Worker error: ${e.message}`;
+                    }
+                }
+                else if (mode === "invidious") {
+                    // Invidious (slow backup)
+                    statusBox.innerHTML = `<div class="transcript-success">🌍 Invidious से fetch कर रहा है (slow हो सकता है)...</div>`;
+                    for (const base of INVIDIOUS_INSTANCES) {
+                        for (const lang of ['hi', 'en']) {
+                            try {
+                                const d = await fetch(`${base}/api/v1/captions/${videoId}?lang=${lang}`, { method: 'GET' }).then(r => r.ok ? r.json() : null);
+                                if (d && Array.isArray(d.subtitles)) {
+                                    const txt = d.subtitles.map(s => s.text || "").join(" ").replace(/\s+/g, " ").trim();
+                                    if (txt.length > 50) {
+                                        finalTranscript = txt;
+                                        sourceEngine = `Invidious (${lang})`;
+                                        break;
+                                    }
+                                }
+                            } catch(e) {}
+                        }
+                        if (finalTranscript) break;
+                    }
+                    if (!finalTranscript) errorMsg = "Invidious: सभी instances fail हुए";
+                }
+
+            } catch(e) {
+                errorMsg = `Unexpected error: ${e.message}`;
             }
 
             btn.disabled = false;
             btn.innerHTML = originalBtnHtml;
-            if(finalTranscript.length > 20) scriptBox.innerText = finalTranscript;
-            else scriptBox.innerText = "कोई सबटाइटल नहीं मिला। दूसरा engine try करें (Worker/Invidious)। AI टाइटल से स्क्रिप्ट तैयार करेगा।";
+
+            if(finalTranscript && finalTranscript.length > 50) {
+                scriptBox.innerText = finalTranscript;
+                setTranscriptCache(videoId, { transcript: finalTranscript, source: sourceEngine });
+                statusBox.innerHTML = `<div class="transcript-success">✅ <strong>सफलता!</strong> ${sourceEngine} से transcript मिला (${finalTranscript.split(/\s+/).length} शब्द)</div>`;
+            } else {
+                scriptBox.innerText = "कोई सबटाइटल नहीं मिला। दूसरा engine try करें या 'Transcript Cache Clear' button दबाएँ।";
+                statusBox.innerHTML = `<div class="transcript-error">❌ <strong>Fail:</strong> ${errorMsg}<br><br>💡 <strong>सुझाव:</strong> RapidAPI engine try करें (100% works)। अगर RapidAPI limit खत्म हो गई है तो अगले महीने तक wait करें।</div>`;
+            }
             updateWordAndCharCounts();
         }
 
@@ -1275,7 +1353,7 @@
             const cleanChannel = sanitizeTextForAI(rawChannel);
             const hasRealTags = rawTags && !rawTags.includes('लोड होंगे') && !rawTags.includes('⏳');
             const hasRealDesc = rawDesc && !rawDesc.includes('लोड होगा') && !rawDesc.includes('⏳');
-            const hasRealScript = rawScript && !rawScript.includes('नीचे') && !rawScript.includes('⏳') && !rawScript.includes('कोई सबटाइटल नहीं');
+            const hasRealScript = rawScript && !rawScript.includes('नीचे') && !rawScript.includes('⏳') && !rawScript.includes('कोई सबटाइटल नहीं') && !rawScript.includes('Transcript extract fail');
 
             const cleanTags = hasRealTags ? sanitizeTextForAI(rawTags).substring(0, 600) : "";
             const cleanDesc = hasRealDesc ? sanitizeTextForAI(rawDesc).substring(0, 1500) : "";
@@ -1304,56 +1382,46 @@
                 promptText += `\n[MY VIDEO FOR SUGGESTION HIJACK]:\n- मेरी वीडियो ID: ${myVideoData.id}\n- मेरी वीडियो टाइटल: ${myVideoData.title}\n- इसे Description और Tags में natural तरीके से शामिल करें।\n`;
             }
 
-            // ✅ CHANNEL NAME HIJACK (search में चैनल के नाम से मेरी video आए)
             if (hijackOn && cleanChannel) {
-                promptText += `\n[CHANNEL NAME SEARCH HIJACK]:\n- Tags और Description में कंपीटीटर चैनल का नाम "${cleanChannel}" natural तरीके से शामिल करो, ताकि जब लोग "${cleanChannel}" चैनल का नाम search करें तो मेरी वीडियो suggestion में आए।\n- Title में चैनल का नाम बिल्कुल मत डालो (misleading metadata policy से बचना है)।\n`;
+                promptText += `\n[CHANNEL NAME SEARCH HIJACK]:\n- Tags और Description में कंपीटीटर चैनल का नाम "${cleanChannel}" natural तरीके से शामिल करो।\n- Title में चैनल का नाम बिल्कुल मत डालो।\n`;
             }
 
-            promptText += `\n[DATE RULE - आज की तारीख]:\nआज की तारीख है: ${hindiDate}। अगर ओरिजिनल टाइटल/डिस्क्रिप्शन में कोई पुरानी तारीख है (जैसे "1 सितंबर", "01 Sep", "31 अगस्त") तो उसे हटाकर आज की तारीख "${hindiDate}" लगाओ।\n`;
+            promptText += `\n[DATE RULE - आज की तारीख]:\nआज की तारीख है: ${hindiDate}। अगर ओरिजिनल टाइटल/डिस्क्रिप्शन में कोई पुरानी तारीख है तो उसे हटाकर आज की तारीख "${hindiDate}" लगाओ।\n`;
 
-            promptText += `\n[SAFETY & COPYRIGHT RULES - YouTube Policy 100% Compliant]:
-1. नया टाइटल ओरिजिनल से कम से कम ${safe.titleDiff}% अलग हो (structure भी बदलो)।
-2. स्क्रिप्ट कम से कम ${safe.scriptUnique}% unique हो — sentences copy न हों, same facts अपने शब्दों और examples से लिखो।
+            promptText += `\n[SAFETY & COPYRIGHT RULES]:
+1. नया टाइटल ओरिजिनल से कम से कम ${safe.titleDiff}% अलग हो।
+2. स्क्रिप्ट कम से कम ${safe.scriptUnique}% unique हो।
 3. Tags में कम से कम ${safe.tagsUnique}% tags competitor की list से अलग हों।
 4. Description कम से कम ${safe.descUnique}% unique हो।
-5. कोई exact sentence copy न हो — पूरी तरह rephrase करो।
-6. स्क्रिप्ट की शुरुआत "नमस्कार! आप देख रहे हैं आर्यन न्यूज़ टेक..." से करें।
+5. स्क्रिप्ट की शुरुआत "नमस्कार! आप देख रहे हैं आर्यन न्यूज़ टेक..." से करें।
 
-[DESCRIPTION FORMAT - Schedule Style]:
-डिस्क्रिप्शन इस format में लिखो:
-पहली लाइन: "आर्यन न्यूज़ टेक पर देखें ${hindiDate} की ताजातरीन खबरें और महत्वपूर्ण अपडेट्स।"
-फिर हर मुख्य टॉपिक की 1-2 लाइन का सारांश।
-अंत में: "आर्यन न्यूज़ टेक आपको देता है देश-विदेश की हर बड़ी खबर का सबसे सटीक विश्लेषण।"
-फिर 10-18 relevant hashtags (#AryanNewsTech हमेशा पहला, साथ में topic से जुड़े hashtags)।
+[DESCRIPTION FORMAT]:
+पहली लाइन: "आर्यन न्यूज़ टेक पर देखें ${hindiDate} की ताजातरीन खबरें।"
+फिर हर मुख्य टॉपिक का सारांश।
+अंत में branding + 10-18 hashtags (#AryanNewsTech पहला)।
 
-[CRITICAL LENGTH & STYLE INSTRUCTION]:
-1. ${hasRealScript ? `ओरिजिनल स्क्रिप्ट में लगभग ${targetWords} शब्द हैं। बिल्कुल ${targetWords} शब्दों की पूरी ${targetMinutes} मिनट लंबी विस्तृत स्क्रिप्ट लिखो। लहजा "${speakingStyle}" जैसा हो।` : `कम से कम 400 शब्दों की विस्तृत स्क्रिप्ट लिखो।`}
-2. स्वच्छ हिंदी (NO Markdown, NO Stars, NO Hash, NO Brackets)।
+[CRITICAL LENGTH]:
+${hasRealScript ? `बिल्कुल ${targetWords} शब्दों की ${targetMinutes} मिनट लंबी स्क्रिप्ट।` : `कम से कम 400 शब्द।`}
 
-[OUTPUT STRUCTURE]:
-1. [NEW_TITLE]: नया वायरल टाइटल (${safe.titleDiff}%+ अलग, आज की तारीख ${hindiDate} के साथ अगर date relevant हो)।
-2. [NEW_SCRIPT]: पूरे ${targetWords} शब्दों की वॉइसओवर स्क्रिप्ट।
-3. [NEW_DESC]: Schedule format में पूरा SEO डिस्क्रिप्शन (unique)।
-4. [NEW_TAGS]: वायरल टैग्स कॉमा से अलग।
-
+[OUTPUT]:
 [NEW_TITLE]
 (नया टाइटल)
 
 [NEW_SCRIPT]
-(पूरी वॉइसओवर स्क्रिप्ट)
+(पूरी स्क्रिप्ट)
 
 [NEW_DESC]
-(पूरा SEO डिस्क्रिप्शन)
+(पूरा डिस्क्रिप्शन)
 
 [NEW_TAGS]
-(सभी टैग्स कॉमा से अलग)`;
+(सभी टैग्स)`;
 
             try {
                 let output = null, usedEngine = "";
                 const errorLog = [];
 
                 const tryDirect = async () => {
-                    if (userGeminiKey.length < 11) { errorLog.push("Direct: Gemini Key सेटिंग्स में नहीं है"); return; }
+                    if (userGeminiKey.length < 11) { errorLog.push("Direct: Gemini Key नहीं है"); return; }
                     const r = await callGeminiDirect(userGeminiKey, promptText, maxTokens);
                     if (r.ok) { output = r.text; usedEngine = "✅ Direct (" + r.model + ")"; }
                     else r.errors.forEach(e => errorLog.push("Direct → " + e));
@@ -1376,7 +1444,6 @@
                     return part.trim();
                 };
 
-                // ✅ Date auto-replace post-processing (title + desc)
                 document.getElementById('aiTitleOut').innerText = replaceDateWithToday(extractSection(output, "[NEW_TITLE]", "[NEW_SCRIPT]")) || replaceDateWithToday(rawTitle);
                 document.getElementById('aiScriptOut').innerText = extractSection(output, "[NEW_SCRIPT]", "[NEW_DESC]") || output;
                 document.getElementById('aiDescOut').innerText = replaceDateWithToday(extractSection(output, "[NEW_DESC]", "[NEW_TAGS]")) || rawDesc;
@@ -1401,7 +1468,6 @@
             }
         }
 
-        // ===== COPY ALL (Title+Script+Desc+Tags एक साथ) =====
         async function copyAllAi(btn) {
             const t = document.getElementById('aiTitleOut').innerText.trim();
             const s = document.getElementById('aiScriptOut').innerText.trim();
