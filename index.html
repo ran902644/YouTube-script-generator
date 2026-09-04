@@ -8,12 +8,12 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <style>
         :root {
-            --bg: #0f172a;          /* Slate 900 */
-            --card: #1e293b;        /* Slate 800 */
+            --bg: #0f172a;
+            --card: #1e293b;
             --card-sub: #172554;
             --box-bg: #090d16;
             --border: #334155;
-            --primary: #3b82f6;     /* Royal Blue */
+            --primary: #3b82f6;
             --primary-light: #60a5fa;
             --purple: #a855f7;
             --accent: #ef4444;
@@ -41,11 +41,21 @@
         /* APP CONTAINER */
         .app-container { width: 100%; max-width: 820px; margin: 0 auto; padding: 0 14px; }
 
-        /* SECTION STYLING */
-        .section-box { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 18px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.06); }
-        .section-title { font-size: 1.02rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px; }
-        .badge-pill { font-size: 0.72rem; background: rgba(59, 130, 246, 0.18); color: var(--primary-light); padding: 4px 10px; border-radius: 20px; font-weight: 700; border: 1px solid rgba(59, 130, 246, 0.3); }
+        /* COLLAPSIBLE SECTION */
+        .section-box { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 18px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative; transition: all 0.3s; }
+        .section-box.hidden-section { display: none; }
+        .section-box[open] { }
+        details.section-box > summary { list-style: none; cursor: pointer; }
+        details.section-box > summary::-webkit-details-marker { display: none; }
+        details.section-box[open] > summary { margin-bottom: 15px; }
+        details.section-box:not([open]) .section-content { display: none; }
+
+        .section-header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .section-title { font-size: 1.02rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px; flex: 1; }
+        .badge-pill { font-size: 0.72rem; background: rgba(59, 130, 246, 0.18); color: var(--primary-light); padding: 4px 10px; border-radius: 20px; font-weight: 700; border: 1px solid rgba(59, 130, 246, 0.3); margin-left: 6px; }
+        .section-controls { display: flex; gap: 6px; align-items: center; }
+        .hide-toggle { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; }
+        .hide-toggle:hover { background: rgba(239, 68, 68, 0.3); }
 
         /* INPUTS & CONTROLS */
         .input-group { display: flex; gap: 8px; margin-bottom: 12px; }
@@ -55,15 +65,31 @@
         .btn-action:active { transform: scale(0.96); }
 
         /* COMPETITOR CARDS & VIDEO ITEMS */
-        .channel-card { background: #182234; border: 1px solid var(--border); border-radius: 14px; padding: 12px; margin-bottom: 12px; }
+        .channel-card { background: #182234; border: 1px solid var(--border); border-radius: 14px; padding: 12px; margin-bottom: 12px; transition: 0.2s; }
+        .channel-card.color-0 { border-left: 4px solid #3b82f6; }
+        .channel-card.color-1 { border-left: 4px solid #a855f7; }
+        .channel-card.color-2 { border-left: 4px solid #10b981; }
+        .channel-card.color-3 { border-left: 4px solid #f59e0b; }
+        .channel-card.color-4 { border-left: 4px solid #ef4444; }
+        .channel-card.color-5 { border-left: 4px solid #06b6d4; }
+        .channel-card.color-6 { border-left: 4px solid #ec4899; }
+        .channel-card.color-7 { border-left: 4px solid #84cc16; }
         .channel-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .channel-title { font-size: 0.95rem; font-weight: 800; display: flex; align-items: center; gap: 6px; color: #93c5fd; }
+        .channel-title { font-size: 0.95rem; font-weight: 800; display: flex; align-items: center; gap: 8px; color: #93c5fd; flex: 1; overflow: hidden; }
+        .channel-logo { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; background: #334155; flex-shrink: 0; }
+        .channel-name-wrap { display: flex; flex-direction: column; overflow: hidden; }
+        .channel-name-wrap span:first-child { font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .channel-name-wrap small { color: var(--text-muted); font-size: 0.7rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .btn-del { color: #f87171; background: none; border: none; cursor: pointer; display: flex; align-items: center; }
-        
-        .video-scroll { max-height: 270px; overflow-y: auto; display: flex; flex-direction: column; gap: 9px; padding-right: 4px; }
+
+        .video-scroll { max-height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 9px; padding-right: 4px; }
         .video-item { display: flex; gap: 12px; background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255,255,255,0.06); padding: 9px; border-radius: 12px; cursor: pointer; transition: 0.18s; }
         .video-item:active { transform: scale(0.98); background: rgba(59,130,246,0.15); border-color: var(--primary); }
+        .video-item.new-video { border: 1px solid #10b981; background: rgba(16, 185, 129, 0.1); animation: pulseGreen 2s infinite; }
+        @keyframes pulseGreen { 0%,100%{box-shadow: 0 0 0 0 rgba(16,185,129,0.4);} 50%{box-shadow: 0 0 0 6px rgba(16,185,129,0);} }
+        .new-badge { font-size: 0.62rem; background: #10b981; color: #fff; padding: 2px 6px; border-radius: 4px; font-weight: 800; margin-left: 4px; }
         .video-thumb { width: 98px; height: 56px; border-radius: 8px; object-fit: cover; background: #000; flex-shrink: 0; }
+        .video-info { flex: 1; overflow: hidden; }
         .video-info h4 { font-size: 0.84rem; font-weight: 600; line-height: 1.35; color: #f1f5f9; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         .video-info small { color: #38bdf8; font-size: 0.74rem; margin-top: 5px; display: flex; align-items: center; gap: 4px; font-weight: 700; }
 
@@ -74,25 +100,25 @@
         /* DATA BOXES & COUNTERS */
         .data-grid { display: flex; flex-direction: column; gap: 14px; }
         .content-card { background: var(--box-bg); border: 1.5px solid var(--border); border-radius: 14px; padding: 14px 15px; position: relative; box-shadow: inset 0 2px 6px rgba(0,0,0,0.25); }
-        .content-card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .content-card-head label { font-size: 0.78rem; font-weight: 800; color: #93c5fd; text-transform: uppercase; letter-spacing: 0.6px; display: flex; align-items: center; gap: 5px; }
-        .content-card-actions { display: flex; gap: 6px; align-items: center; }
+        .content-card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px; }
+        .content-card-head label { font-size: 0.78rem; font-weight: 800; color: #93c5fd; text-transform: uppercase; letter-spacing: 0.6px; display: inline-flex; align-items: center; gap: 5px; }
+        .content-card-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
 
-        .count-badge { font-size: 0.68rem; background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 8px; border-radius: 6px; font-weight: 800; display: inline-flex; align-items: center; gap: 4px; }
+        .count-badge { font-size: 0.68rem; background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 8px; border-radius: 6px; font-weight: 800; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
         .count-badge.purple { background: rgba(168, 85, 247, 0.2); color: #f0abfc; border-color: rgba(168, 85, 247, 0.4); }
 
         .content-view { font-size: 0.88rem; color: #e2e8f0; line-height: 1.6; max-height: 180px; overflow-y: auto; white-space: pre-wrap; word-break: break-word; }
         .content-view.large { max-height: 280px; font-size: 0.9rem; }
 
         /* MINI BUTTONS */
-        .btn-mini { background: #1e293b; color: #60a5fa; border: 1px solid #3b82f6; padding: 4px 10px; border-radius: 8px; font-size: 0.72rem; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; }
+        .btn-mini { background: #1e293b; color: #60a5fa; border: 1px solid #3b82f6; padding: 4px 10px; border-radius: 8px; font-size: 0.72rem; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; white-space: nowrap; }
         .btn-mini:active { transform: scale(0.92); }
         .btn-mini.btn-search { background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.4); }
 
         /* CONTROL PANELS */
         .control-panel-box { background: #141e33; border: 1.5px dashed rgba(59, 130, 246, 0.4); border-radius: 14px; padding: 14px; margin-top: 15px; }
         .control-panel-box label { font-size: 0.78rem; color: #93c5fd; font-weight: bold; display: block; margin-bottom: 8px; }
-        
+
         .btn-extract { width: 100%; height: 50px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; border: none; border-radius: 12px; font-weight: 800; font-size: 0.96rem; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; margin-top: 10px; box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35); }
         .btn-extract:disabled { opacity: 0.65; cursor: not-allowed; }
 
@@ -101,23 +127,39 @@
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
         /* MASTER GEMINI BUTTON */
-        .btn-ai-generate { width: 100%; padding: 17px; background: linear-gradient(135deg, #8b5cf6, #d946ef); color: white; border: none; border-radius: 16px; font-weight: 800; font-size: 1.02rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 10px 30px rgba(217, 70, 239, 0.35); margin-top: 12px; text-align: center; }
+        .btn-ai-generate { width: 100%; padding: 17px; background: linear-gradient(135deg, #8b5cf6, #d946ef); color: white; border: none; border-radius: 16px; font-weight: 800; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 10px 30px rgba(217, 70, 239, 0.35); margin-top: 12px; text-align: center; flex-wrap: wrap; line-height: 1.4; }
         .btn-ai-generate:active { transform: scale(0.97); }
+        .data-source-pills { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; margin-top: 4px; }
+        .data-source-pill { font-size: 0.68rem; background: rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 10px; font-weight: 700; }
 
         /* AI OUTPUTS */
         .ai-result-section { display: none; background: #1e1b4b; border: 1.5px solid #8b5cf6; border-radius: 20px; padding: 18px; margin-top: 18px; box-shadow: 0 12px 35px rgba(139, 92, 246, 0.25); }
         .ai-card { background: #0f0d25; border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 14px; padding: 14px; margin-bottom: 14px; }
-        .ai-card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .ai-card-head span { font-size: 0.85rem; font-weight: 800; color: #d8b4fe; display: flex; align-items: center; gap: 6px; }
+        .ai-card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px; }
+        .ai-card-head span { font-size: 0.85rem; font-weight: 800; color: #d8b4fe; display: inline-flex; align-items: center; gap: 6px; }
 
         /* SIDEBAR SETTINGS */
         .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 2000; display: none; }
-        .sidebar { position: fixed; top: 0; right: -340px; width: 330px; height: 100%; background: #1e293b; border-left: 1px solid var(--border); z-index: 2001; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); padding: 22px; overflow-y: auto; }
+        .sidebar { position: fixed; top: 0; right: -360px; width: 340px; height: 100%; background: #1e293b; border-left: 1px solid var(--border); z-index: 2001; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); padding: 22px; overflow-y: auto; }
         .sidebar.open { right: 0; }
         .sidebar-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
         .sidebar-group { margin-bottom: 18px; }
         .sidebar-group label { display: block; font-size: 0.74rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 700; text-transform: uppercase; }
+        .sidebar-group-grouped { background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 14px; }
+        .sidebar-group-grouped h4 { font-size: 0.82rem; color: #60a5fa; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; font-weight: 800; }
         .sidebar-note { font-size: 0.72rem; color: #a7f3d0; background: rgba(16,185,129,0.12); padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(16,185,129,0.25); margin-bottom: 12px; line-height: 1.4; }
+        .sidebar-buttons { display: flex; gap: 8px; margin-top: 14px; }
+        .sidebar-buttons button { flex: 1; }
+
+        /* HIDDEN SECTIONS LIST */
+        .hidden-sections-list { background: rgba(239, 68, 68, 0.08); border: 1px dashed rgba(239, 68, 68, 0.3); border-radius: 10px; padding: 10px; margin-bottom: 12px; }
+        .hidden-sections-list h4 { font-size: 0.78rem; color: #f87171; margin-bottom: 8px; font-weight: 800; }
+        .hidden-item { background: rgba(0,0,0,0.25); padding: 6px 10px; border-radius: 6px; margin-bottom: 4px; font-size: 0.72rem; color: #cbd5e1; display: flex; justify-content: space-between; align-items: center; }
+        .hidden-item button { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 8px; border-radius: 5px; font-size: 0.68rem; cursor: pointer; font-weight: 700; }
+
+        /* MY VIDEO SUGGESTION BOX */
+        .my-video-box { background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(59, 130, 246, 0.12)); border: 1.5px solid rgba(16, 185, 129, 0.3); border-radius: 14px; padding: 12px; margin-top: 12px; }
+        .my-video-box-head { font-size: 0.78rem; color: #6ee7b7; font-weight: 800; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
     </style>
 </head>
 <body>
@@ -137,190 +179,214 @@
     <!-- MAIN APP CONTAINER -->
     <div class="app-container">
 
-        <!-- 1. COMPETITOR CHANNEL MONITOR -->
-        <div class="section-box">
-            <div class="section-header">
+        <!-- 1. COMPETITOR CHANNEL MONITOR (ACCORDION) -->
+        <details class="section-box" id="sec_comp" open>
+            <summary class="section-header">
                 <div class="section-title">
                     <span class="material-icons-round" style="color:var(--primary);">radar</span>
                     <span>1. कंपीटीटर चैनल (Real-Time 72h Monitor)</span>
+                    <span class="badge-pill" id="compCount">0 Channels</span>
                 </div>
-                <span class="badge-pill" id="compCount">0 Channels</span>
-            </div>
-            
-            <div class="input-group">
-                <input type="text" id="compInput" placeholder="चैनल URL या @username डालें...">
-                <button class="btn-action" onclick="addCompetitor()"><span class="material-icons-round">add</span> Add</button>
-            </div>
-            
-            <div id="channelsContainer"></div>
-        </div>
+                <div class="section-controls" onclick="event.stopPropagation()">
+                    <button class="hide-toggle" onclick="hideSection('sec_comp')" title="Hide Section"><span class="material-icons-round">visibility_off</span></button>
+                </div>
+            </summary>
+            <div class="section-content">
+                <div class="input-group">
+                    <input type="text" id="compInput" placeholder="चैनल URL या @username डालें...">
+                    <button class="btn-action" onclick="addCompetitor()"><span class="material-icons-round">add</span> Add</button>
+                </div>
 
-        <!-- 2. SELECTED VIDEO DATA & EXTRACTION AREA -->
-        <div class="section-box" id="studioWorkArea">
-            <div class="section-header">
+                <!-- MOVED: YouTube Metadata Engine dropdown -->
+                <div class="control-panel-box" style="margin-top:0; margin-bottom:15px;">
+                    <label>📌 YouTube Metadata Engine (Title, Tags, Description हेतु):</label>
+                    <select id="ytMetadataModeSelect" onchange="saveEngineSelections()">
+                        <option value="worker">🌐 YouTube Worker URL (v7 Live Engine - 100% Real Tags/Desc)</option>
+                        <option value="official">🔑 Official YouTube Data API v3 (Fast Key Backup)</option>
+                    </select>
+                </div>
+
+                <div id="channelsContainer"></div>
+            </div>
+        </details>
+
+        <!-- 2. SELECTED VIDEO DATA & EXTRACTION AREA (ACCORDION) -->
+        <details class="section-box" id="sec_studio">
+            <summary class="section-header">
                 <div class="section-title">
                     <span class="material-icons-round" style="color:#f59e0b;">video_library</span>
                     <span>2. ओरिजिनल वीडियो डेटा & प्लेयर</span>
+                    <span class="badge-pill" id="activeVidStatus">वीडियो चुनें</span>
                 </div>
-                <span class="badge-pill" id="activeVidStatus">वीडियो चुनें</span>
-            </div>
+                <div class="section-controls" onclick="event.stopPropagation()">
+                    <button class="hide-toggle" onclick="hideSection('sec_studio')" title="Hide Section"><span class="material-icons-round">visibility_off</span></button>
+                </div>
+            </summary>
+            <div class="section-content">
 
-            <!-- YouTube Video Player -->
-            <div class="player-box" id="playerWrap">
-                <iframe id="ytIframe" allowfullscreen allow="autoplay; encrypted-media"></iframe>
-            </div>
-
-            <!-- YOUTUBE DATA EXTRACTION ENGINE SELECTOR -->
-            <div class="control-panel-box" style="margin-top:0; margin-bottom:15px;">
-                <label>📌 YouTube Metadata Engine (Title, Tags, Description हेतु):</label>
-                <select id="ytMetadataModeSelect" onchange="saveEngineSelections()">
-                    <option value="worker">🌐 YouTube Worker URL (v7 Live Engine - 100% Real Tags/Desc)</option>
-                    <option value="official">🔑 Official YouTube Data API v3 (Fast Key Backup)</option>
-                </select>
-            </div>
-
-            <div class="data-grid">
-                <!-- 1. Video URL -->
-                <div class="content-card">
-                    <div class="content-card-head">
-                        <label><span class="material-icons-round" style="font-size:15px;">link</span> Video URL</label>
-                        <button class="btn-mini" onclick="copyValue('vidUrlVal', this)"><span class="material-icons-round" style="font-size:13px;">content_copy</span> Copy</button>
-                    </div>
-                    <input type="text" id="vidUrlVal" readonly placeholder="वीडियो लिंक यहाँ आएगा..." style="height:38px; padding:6px 12px; font-size:0.85rem; background:#070a10;">
+                <!-- YouTube Video Player -->
+                <div class="player-box" id="playerWrap">
+                    <iframe id="ytIframe" allowfullscreen allow="autoplay; encrypted-media"></iframe>
                 </div>
 
-                <!-- 2. Title -->
-                <div class="content-card">
-                    <div class="content-card-head">
-                        <label><span class="material-icons-round" style="font-size:15px;">title</span> Original Title</label>
-                        <div class="content-card-actions">
-                            <span class="count-badge" id="titleCountBadge">0 शब्द | 0 अक्षर</span>
-                            <button class="btn-mini" onclick="copyText('origTitleVal', this)"><span class="material-icons-round" style="font-size:13px;">content_copy</span> Copy</button>
+                <div class="data-grid">
+                    <!-- 1. Video URL -->
+                    <div class="content-card">
+                        <div class="content-card-head">
+                            <label><span class="material-icons-round" style="font-size:15px;">link</span> Video URL</label>
+                            <button class="btn-mini" onclick="copyValue('vidUrlVal', this)"><span class="material-icons-round" style="font-size:13px;">content_copy</span> Copy</button>
                         </div>
+                        <input type="text" id="vidUrlVal" readonly placeholder="वीडियो लिंक यहाँ आएगा..." style="height:38px; padding:6px 12px; font-size:0.85rem; background:#070a10;">
                     </div>
-                    <div class="content-view" id="origTitleVal" style="font-weight:700; color:#fff; font-size:0.95rem;">वीडियो लिस्ट में से किसी वीडियो पर टैप करें।</div>
-                </div>
 
-                <!-- 3. Tags -->
-                <div class="content-card">
-                    <div class="content-card-head">
-                        <label><span class="material-icons-round" style="font-size:15px;">tag</span> Competitor Real Tags</label>
-                        <div class="content-card-actions">
-                            <span class="count-badge" id="tagsCountBadge">0 टैग्स</span>
-                            <button class="btn-mini btn-search" onclick="fetchAllVideoMetadata(document.getElementById('currentVideoId').value, document.getElementById('origTitleVal').innerText)"><span class="material-icons-round" style="font-size:13px;">search</span> Fetch Tags</button>
-                            <button class="btn-mini" onclick="copyText('origTagsVal', this)"><span class="material-icons-round" style="font-size:13px;">content_copy</span> Copy</button>
+                    <!-- 2. Title -->
+                    <div class="content-card">
+                        <div class="content-card-head">
+                            <label><span class="material-icons-round" style="font-size:15px;">title</span> Original Title</label>
+                            <div class="content-card-actions">
+                                <span class="count-badge" id="titleCountBadge">0 शब्द | 0 अक्षर</span>
+                                <button class="btn-mini" onclick="copyText('origTitleVal', this)"><span class="material-icons-round" style="font-size:13px;">content_copy</span> Copy</button>
+                            </div>
                         </div>
+                        <div class="content-view" id="origTitleVal" style="font-weight:700; color:#fff; font-size:0.95rem;">वीडियो लिस्ट में से किसी वीडियो पर टैप करें।</div>
                     </div>
-                    <div class="content-view" id="origTagsVal" style="color:#60a5fa; font-weight:500;">वीडियो चुनने पर असली टैग्स लोड होंगे...</div>
-                </div>
 
-                <!-- 4. Description -->
-                <div class="content-card">
-                    <div class="content-card-head">
-                        <label><span class="material-icons-round" style="font-size:15px;">description</span> Original Full Description</label>
-                        <div class="content-card-actions">
-                            <span class="count-badge" id="descCountBadge">0 शब्द | 0 अक्षर</span>
-                            <button class="btn-mini btn-search" onclick="fetchAllVideoMetadata(document.getElementById('currentVideoId').value, document.getElementById('origTitleVal').innerText)"><span class="material-icons-round" style="font-size:13px;">search</span> Fetch Desc</button>
-                            <button class="btn-mini" onclick="copyText('origDescVal', this)"><span class="material-icons-round" style="font-size:13px;">content_copy</span> Copy</button>
+                    <!-- 3. Tags -->
+                    <div class="content-card">
+                        <div class="content-card-head">
+                            <label><span class="material-icons-round" style="font-size:15px;">tag</span> Competitor Real Tags</label>
+                            <div class="content-card-actions">
+                                <span class="count-badge" id="tagsCountBadge">0 टैग्स</span>
+                                <button class="btn-mini btn-search" onclick="fetchAllVideoMetadata(document.getElementById('currentVideoId').value, document.getElementById('origTitleVal').innerText)"><span class="material-icons-round" style="font-size:13px;">search</span> Fetch Tags</button>
+                                <button class="btn-mini" onclick="copyText('origTagsVal', this)"><span class="material-icons-round" style="font-size:13px;">content_copy</span> Copy</button>
+                            </div>
                         </div>
+                        <div class="content-view" id="origTagsVal" style="color:#60a5fa; font-weight:500;">वीडियो चुनने पर असली टैग्स लोड होंगे...</div>
                     </div>
-                    <div class="content-view large" id="origDescVal" style="color:#cbd5e1;">वीडियो चुनने पर असली पूरा विवरण यहाँ लोड होगा...</div>
-                </div>
 
-                <!-- 5. Spoken Transcript Script -->
-                <div class="content-card" style="border-color: rgba(16, 185, 129, 0.4);">
-                    <div class="content-card-head">
-                        <label style="color:#6ee7b7;"><span class="material-icons-round" style="font-size:15px;">record_voice_over</span> Original Spoken Script</label>
-                        <div class="content-card-actions">
-                            <span class="count-badge" id="scriptCountBadge" style="background:rgba(16,185,129,0.25); color:#6ee7b7;">0 शब्द | 0 अक्षर</span>
-                            <button class="btn-mini" onclick="downloadOrigScript()"><span class="material-icons-round" style="font-size:13px;">download</span> TXT</button>
-                            <button class="btn-mini" onclick="copyText('origScriptVal', this)"><span class="material-icons-round" style="font-size:13px;">content_copy</span> Copy</button>
+                    <!-- 4. Description -->
+                    <div class="content-card">
+                        <div class="content-card-head">
+                            <label><span class="material-icons-round" style="font-size:15px;">description</span> Original Full Description</label>
+                            <div class="content-card-actions">
+                                <span class="count-badge" id="descCountBadge">0 शब्द | 0 अक्षर</span>
+                                <button class="btn-mini btn-search" onclick="fetchAllVideoMetadata(document.getElementById('currentVideoId').value, document.getElementById('origTitleVal').innerText)"><span class="material-icons-round" style="font-size:13px;">search</span> Fetch Desc</button>
+                                <button class="btn-mini" onclick="copyText('origDescVal', this)"><span class="material-icons-round" style="font-size:13px;">content_copy</span> Copy</button>
+                            </div>
                         </div>
+                        <div class="content-view large" id="origDescVal" style="color:#cbd5e1;">वीडियो चुनने पर असली पूरा विवरण यहाँ लोड होगा...</div>
                     </div>
-                    <div class="content-view large" id="origScriptVal" style="color:#a7f3d0;">नीचे 'पूरा स्क्रिप्ट निकालें' बटन दबाएँ...</div>
+
+                    <!-- 5. Spoken Transcript Script -->
+                    <div class="content-card" style="border-color: rgba(16, 185, 129, 0.4);">
+                        <div class="content-card-head">
+                            <label style="color:#6ee7b7;"><span class="material-icons-round" style="font-size:15px;">record_voice_over</span> Original Spoken Script</label>
+                            <div class="content-card-actions">
+                                <span class="count-badge" id="scriptCountBadge" style="background:rgba(16,185,129,0.25); color:#6ee7b7;">0 शब्द | 0 अक्षर</span>
+                                <button class="btn-mini" onclick="downloadOrigScript()"><span class="material-icons-round" style="font-size:13px;">download</span> TXT</button>
+                                <button class="btn-mini" onclick="copyText('origScriptVal', this)"><span class="material-icons-round" style="font-size:13px;">content_copy</span> Copy</button>
+                            </div>
+                        </div>
+                        <div class="content-view large" id="origScriptVal" style="color:#a7f3d0;">नीचे 'पूरा स्क्रिप्ट निकालें' बटन दबाएँ...</div>
+                    </div>
                 </div>
-            </div>
 
-            <!-- TRANSCRIPT MODEL DROPDOWN & EXTRACT BUTTON -->
-            <div class="control-panel-box">
-                <label>🎙️ ट्रांसक्रिप्ट निष्कर्षण मॉडल चुनें (Script Extraction Engine):</label>
-                <select id="transcriptModeSelect" onchange="saveEngineSelections()">
-                    <option value="rapid">🚀 Premium RapidAPI (Fast Multi-Lang Auto Fallback)</option>
-                    <option value="worker">🌐 YouTube Worker URL (v7 Live Subtitle Scraper)</option>
-                </select>
-                <button class="btn-extract" id="btnExtractScript" onclick="extractTranscript()"><span class="material-icons-round">subtitles</span> पूरा स्क्रिप्ट (Transcript) निकालें</button>
-            </div>
+                <!-- TRANSCRIPT EXTRACT BUTTON (RapidAPI Only - no dropdown) -->
+                <div class="control-panel-box">
+                    <label>🎙️ Premium RapidAPI Transcript Engine (Fast Multi-Lang Auto Fallback):</label>
+                    <button class="btn-extract" id="btnExtractScript" onclick="extractTranscript()"><span class="material-icons-round">subtitles</span> पूरा स्क्रिप्ट (Transcript) निकालें</button>
+                </div>
 
-            <!-- GEMINI GENERATION ENGINE DROPDOWN & MASTER BUTTON -->
-            <div class="control-panel-box" style="border-color: rgba(168, 85, 247, 0.4); background:#1a1533;">
-                <label style="color:#d8b4fe;">🤖 जेमिनी AI इंजन चुनें (Script & SEO Generation Engine):</label>
-                <select id="geminiEngineSelect" onchange="saveEngineSelections()">
-                    <option value="direct">🔑 Google Gemini API Key (Direct No 400 Error)</option>
-                    <option value="worker">🌐 Gemini Worker URL (Fallback Proxy)</option>
-                </select>
-                <button class="btn-ai-generate" id="btnAiGen" onclick="generateAiScriptMaster()"><span class="material-icons-round">auto_awesome</span> जेमिनी AI से कंटेंट पैकेज जनरेट करें</button>
-            </div>
-        </div>
+                <!-- GEMINI GENERATION ENGINE -->
+                <div class="control-panel-box" style="border-color: rgba(168, 85, 247, 0.4); background:#1a1533;">
+                    <label style="color:#d8b4fe;">🤖 जेमिनी AI इंजन चुनें (Script & SEO Generation Engine):</label>
+                    <select id="geminiEngineSelect" onchange="saveEngineSelections()">
+                        <option value="direct">🔑 Google Gemini API Key (Direct No 400 Error)</option>
+                        <option value="worker">🌐 Gemini Worker URL (Fallback Proxy)</option>
+                    </select>
+                    <button class="btn-ai-generate" id="btnAiGen" onclick="generateAiScriptMaster()">
+                        <span class="material-icons-round">auto_awesome</span>
+                        <span id="btnAiGenText">जेमिनी AI से कंटेंट पैकेज जनरेट करें</span>
+                        <div class="data-source-pills" id="dataSourcePills"></div>
+                    </button>
+                </div>
 
-        <!-- 3. AI GENERATED PACK -->
-        <div class="section-box ai-result-section" id="aiResultCard">
-            <div class="section-header" style="border-color: rgba(168, 85, 247, 0.3);">
+                <!-- MY VIDEO SUGGESTION -->
+                <div class="my-video-box">
+                    <div class="my-video-box-head"><span class="material-icons-round" style="font-size:16px;">trending_up</span> मेरी वीडियो Suggestion में दिखाएँ (SEO Hijack)</div>
+                    <input type="text" id="myVideoId" placeholder="अपनी नई वीडियो ID या URL डालें (Competitor की video के सुझाव में दिखेगी)">
+                    <input type="text" id="myVideoTitle" placeholder="अपनी वीडियो का SEO Title (Search में दिखेगा)" style="margin-top:8px;">
+                    <button class="btn-action" style="width:100%; height:40px; margin-top:10px;" onclick="saveMyVideoData()"><span class="material-icons-round">save</span> Save My Video Data</button>
+                </div>
+
+            </div>
+        </details>
+
+        <!-- 3. AI GENERATED PACK (ACCORDION) -->
+        <details class="section-box" id="sec_ai" style="display:none;">
+            <summary class="section-header">
                 <div class="section-title">
                     <span class="material-icons-round" style="color:#d8b4fe;">smart_toy</span>
-                    <span style="color:#e9d5ff;">3. AI Generated Content Pack</span>
+                    <span>3. AI Generated Content Pack</span>
+                    <span class="badge-pill" style="background:rgba(168,85,247,0.2); color:#f0abfc; border-color:#a855f7;">Ready to Post</span>
                 </div>
-                <span class="badge-pill" style="background:rgba(168,85,247,0.2); color:#f0abfc; border-color:#a855f7;">Ready to Post</span>
-            </div>
+                <div class="section-controls" onclick="event.stopPropagation()">
+                    <button class="hide-toggle" onclick="hideSection('sec_ai')" title="Hide Section"><span class="material-icons-round">visibility_off</span></button>
+                </div>
+            </summary>
+            <div class="section-content">
 
-            <!-- AI Title -->
-            <div class="ai-card">
-                <div class="ai-card-head">
-                    <span><span class="material-icons-round">text_fields</span> 1. New SEO Title</span>
-                    <div class="content-card-actions">
-                        <span class="count-badge purple" id="aiTitleCountBadge">0 शब्द | 0 अक्षर</span>
-                        <button class="btn-mini" onclick="copyText('aiTitleOut', this)"><span class="material-icons-round" style="font-size:12px;">content_copy</span> Copy</button>
+                <!-- AI Title -->
+                <div class="ai-card">
+                    <div class="ai-card-head">
+                        <span><span class="material-icons-round">text_fields</span> 1. New SEO Title</span>
+                        <div class="content-card-actions">
+                            <span class="count-badge purple" id="aiTitleCountBadge">0 शब्द | 0 अक्षर</span>
+                            <button class="btn-mini" onclick="copyText('aiTitleOut', this)"><span class="material-icons-round" style="font-size:12px;">content_copy</span> Copy</button>
+                        </div>
                     </div>
+                    <div class="content-view" id="aiTitleOut" style="font-weight:bold; color:#fff; font-size:0.95rem;"></div>
                 </div>
-                <div class="content-view" id="aiTitleOut" style="font-weight:bold; color:#fff; font-size:0.95rem;"></div>
-            </div>
 
-            <!-- AI Voiceover Script -->
-            <div class="ai-card">
-                <div class="ai-card-head">
-                    <span><span class="material-icons-round">mic</span> 2. Voiceover Script (100% Length Matched)</span>
-                    <div class="content-card-actions">
-                        <span class="count-badge purple" id="aiScriptCountBadge">0 शब्द | 0 अक्षर</span>
-                        <button class="btn-mini" onclick="downloadAiScript()"><span class="material-icons-round" style="font-size:12px;">download</span> TXT</button>
-                        <button class="btn-mini" onclick="copyText('aiScriptOut', this)"><span class="material-icons-round" style="font-size:12px;">content_copy</span> Copy</button>
+                <!-- AI Voiceover Script -->
+                <div class="ai-card">
+                    <div class="ai-card-head">
+                        <span><span class="material-icons-round">mic</span> 2. Voiceover Script (100% Length & Style Matched)</span>
+                        <div class="content-card-actions">
+                            <span class="count-badge purple" id="aiScriptCountBadge">0 शब्द | 0 अक्षर</span>
+                            <button class="btn-mini" onclick="downloadAiScript()"><span class="material-icons-round" style="font-size:12px;">download</span> TXT</button>
+                            <button class="btn-mini" onclick="copyText('aiScriptOut', this)"><span class="material-icons-round" style="font-size:12px;">content_copy</span> Copy</button>
+                        </div>
                     </div>
+                    <div class="content-view large" id="aiScriptOut" style="font-size:0.95rem; line-height:1.8; color:#f5f3ff;"></div>
                 </div>
-                <div class="content-view large" id="aiScriptOut" style="font-size:0.95rem; line-height:1.8; color:#f5f3ff;"></div>
-            </div>
 
-            <!-- AI Description -->
-            <div class="ai-card">
-                <div class="ai-card-head">
-                    <span><span class="material-icons-round">segment</span> 3. Hijack Description</span>
-                    <div class="content-card-actions">
-                        <span class="count-badge purple" id="aiDescCountBadge">0 शब्द | 0 अक्षर</span>
-                        <button class="btn-mini" onclick="copyText('aiDescOut', this)"><span class="material-icons-round" style="font-size:12px;">content_copy</span> Copy</button>
+                <!-- AI Description -->
+                <div class="ai-card">
+                    <div class="ai-card-head">
+                        <span><span class="material-icons-round">segment</span> 3. Hijack Description</span>
+                        <div class="content-card-actions">
+                            <span class="count-badge purple" id="aiDescCountBadge">0 शब्द | 0 अक्षर</span>
+                            <button class="btn-mini" onclick="copyText('aiDescOut', this)"><span class="material-icons-round" style="font-size:12px;">content_copy</span> Copy</button>
+                        </div>
                     </div>
+                    <div class="content-view large" id="aiDescOut" style="color:#e2e8f0;"></div>
                 </div>
-                <div class="content-view large" id="aiDescOut" style="color:#e2e8f0;"></div>
-            </div>
 
-            <!-- AI Viral Tags -->
-            <div class="ai-card">
-                <div class="ai-card-head">
-                    <span><span class="material-icons-round">label</span> 4. Viral SEO Tags</span>
-                    <div class="content-card-actions">
-                        <span class="count-badge purple" id="aiTagsCountBadge">0 टैग्स</span>
-                        <button class="btn-mini" onclick="copyText('aiTagsOut', this)"><span class="material-icons-round" style="font-size:12px;">content_copy</span> Copy</button>
+                <!-- AI Viral Tags -->
+                <div class="ai-card">
+                    <div class="ai-card-head">
+                        <span><span class="material-icons-round">label</span> 4. Viral SEO Tags</span>
+                        <div class="content-card-actions">
+                            <span class="count-badge purple" id="aiTagsCountBadge">0 टैग्स</span>
+                            <button class="btn-mini" onclick="copyText('aiTagsOut', this)"><span class="material-icons-round" style="font-size:12px;">content_copy</span> Copy</button>
+                        </div>
                     </div>
+                    <div class="content-view" id="aiTagsOut" style="color:#c084fc;"></div>
                 </div>
-                <div class="content-view" id="aiTagsOut" style="color:#c084fc;"></div>
+
             </div>
-        </div>
+        </details>
 
     </div>
 
@@ -343,24 +409,36 @@
             • Google Gemini API: Free 15 Request/minute.
         </div>
 
-        <div class="sidebar-group">
-            <label>YouTube Data API v3 Key</label>
-            <input type="text" id="ytDataApiKey" placeholder="AIzaSy... (YouTube API Key डालें)">
+        <!-- HIDDEN SECTIONS LIST -->
+        <div class="hidden-sections-list" id="hiddenSectionsList" style="display:none;">
+            <h4>🔒 Hidden Sections (Click to Show)</h4>
+            <div id="hiddenSectionsItems"></div>
         </div>
 
-        <div class="sidebar-group">
-            <label>Google Gemini API Key (Direct No 400 Error)</label>
-            <input type="text" id="geminiApiKey" placeholder="AIzaSy... (Gemini Key डालें)">
+        <!-- GROUP 1: YouTube Data API + Worker URL -->
+        <div class="sidebar-group-grouped">
+            <h4><span class="material-icons-round" style="font-size:16px;">ondemand_video</span> YouTube Engine Settings</h4>
+            <div class="sidebar-group" style="margin-bottom:10px;">
+                <label>YouTube Data API v3 Key</label>
+                <input type="text" id="ytDataApiKey" placeholder="AIzaSy... (YouTube API Key डालें)">
+            </div>
+            <div class="sidebar-group" style="margin-bottom:0;">
+                <label>YouTube Worker URL (v7 Engine)</label>
+                <input type="text" id="ytApiUrl" placeholder="https://your-worker.workers.dev">
+            </div>
         </div>
 
-        <div class="sidebar-group">
-            <label>YouTube Worker URL (v7 Engine)</label>
-            <input type="text" id="ytApiUrl">
-        </div>
-
-        <div class="sidebar-group">
-            <label>Gemini Worker URL (Fallback)</label>
-            <input type="text" id="geminiApiUrl">
+        <!-- GROUP 2: Gemini API + Worker URL -->
+        <div class="sidebar-group-grouped">
+            <h4><span class="material-icons-round" style="font-size:16px;">auto_awesome</span> Gemini AI Engine Settings</h4>
+            <div class="sidebar-group" style="margin-bottom:10px;">
+                <label>Google Gemini API Key (Direct No 400 Error)</label>
+                <input type="text" id="geminiApiKey" placeholder="AIzaSy... (Gemini Key डालें)">
+            </div>
+            <div class="sidebar-group" style="margin-bottom:0;">
+                <label>Gemini Worker URL (Fallback)</label>
+                <input type="text" id="geminiApiUrl" placeholder="https://your-worker.workers.dev">
+            </div>
         </div>
 
         <div class="sidebar-group">
@@ -368,7 +446,11 @@
             <input type="text" id="rapidApiKey" placeholder="X-RapidAPI-Key डालें...">
         </div>
 
-        <button class="btn-action" style="width:100%; height:46px; margin-top:10px;" onclick="saveSettings()"><span class="material-icons-round">save</span> Save Settings</button>
+        <!-- SAVE & DELETE BUTTONS TOGETHER -->
+        <div class="sidebar-buttons">
+            <button class="btn-action" onclick="saveSettings()" style="height:46px;"><span class="material-icons-round">save</span> Save All</button>
+            <button class="btn-action" onclick="clearAllSettings()" style="height:46px; background:linear-gradient(135deg, #ef4444, #dc2626);"><span class="material-icons-round">delete_forever</span> Clear All</button>
+        </div>
     </div>
 
     <input type="hidden" id="currentSelectedChannel" value="">
@@ -380,10 +462,19 @@
         const GEMINI_WORKER = "https://storystudio-api.babu902654.workers.dev";
 
         let competitors = JSON.parse(localStorage.getItem("aryan_competitors") || "[]");
+        let channelCache = JSON.parse(localStorage.getItem("aryan_channel_cache") || "{}");
+        let myVideoData = JSON.parse(localStorage.getItem("aryan_my_video") || "{}");
+        let hiddenSections = JSON.parse(localStorage.getItem("aryan_hidden_sections") || "[]");
+        let livePollInterval = null;
+
+        const SECTION_NAMES = {
+            'sec_comp': 'कंपीटीटर चैनल',
+            'sec_studio': 'वीडियो डेटा & प्लेयर',
+            'sec_ai': 'AI Generated Pack'
+        };
 
         window.addEventListener('DOMContentLoaded', () => {
             document.getElementById('ytMetadataModeSelect').value = localStorage.getItem("yt_meta_mode") || "worker";
-            document.getElementById('transcriptModeSelect').value = localStorage.getItem("yt_transcript_mode") || "rapid";
             document.getElementById('geminiEngineSelect').value = localStorage.getItem("gemini_engine_mode") || "direct";
 
             document.getElementById('ytDataApiKey').value = localStorage.getItem("myYtDataApiKey") || "";
@@ -391,22 +482,39 @@
             document.getElementById('ytApiUrl').value = localStorage.getItem("yt_api_url") || YT_WORKER;
             document.getElementById('geminiApiUrl').value = localStorage.getItem("gemini_api_url") || GEMINI_WORKER;
             document.getElementById('rapidApiKey').value = localStorage.getItem("myRapidApiKey") || "";
-            
+
+            document.getElementById('myVideoId').value = myVideoData.id || "";
+            document.getElementById('myVideoTitle').value = myVideoData.title || "";
+
             updateCompBadge();
+            renderHiddenSections();
+            applyHiddenSections();
             if(competitors.length > 0) loadAllChannels();
             updateWordAndCharCounts();
             updateGeminiBtnLabel();
+            startLivePolling();
         });
+
+        function startLivePolling() {
+            if(livePollInterval) clearInterval(livePollInterval);
+            livePollInterval = setInterval(() => {
+                if(competitors.length > 0) {
+                    competitors.forEach(handle => {
+                        const safeId = 'ch_' + handle.replace('@','').replace(/[^a-zA-Z0-9]/g,'_');
+                        refreshChannelVideos(handle, safeId, true);
+                    });
+                }
+            }, 60000); // Check every 60 seconds for new uploads
+        }
 
         function toggleSidebar() {
             const sb = document.getElementById('sidebar'), ov = document.getElementById('sidebarOverlay');
             if (sb.classList.contains('open')) { sb.classList.remove('open'); ov.style.display = 'none'; }
-            else { sb.classList.add('open'); ov.style.display = 'block'; }
+            else { sb.classList.add('open'); ov.style.display = 'block'; renderHiddenSections(); }
         }
 
         function saveEngineSelections() {
             localStorage.setItem("yt_meta_mode", document.getElementById('ytMetadataModeSelect').value);
-            localStorage.setItem("yt_transcript_mode", document.getElementById('transcriptModeSelect').value);
             localStorage.setItem("gemini_engine_mode", document.getElementById('geminiEngineSelect').value);
         }
 
@@ -421,11 +529,86 @@
             alert("✅ सभी API सेटिंग्स सुरक्षित हो गईं!");
         }
 
+        function clearAllSettings() {
+            if(!confirm("क्या आप सभी सेटिंग्स डिलीट करना चाहते हैं?")) return;
+            localStorage.removeItem("myYtDataApiKey");
+            localStorage.removeItem("myGeminiApiKey");
+            localStorage.removeItem("yt_api_url");
+            localStorage.removeItem("gemini_api_url");
+            localStorage.removeItem("myRapidApiKey");
+            localStorage.removeItem("aryan_my_video");
+            document.getElementById('ytDataApiKey').value = "";
+            document.getElementById('geminiApiKey').value = "";
+            document.getElementById('ytApiUrl').value = "";
+            document.getElementById('geminiApiUrl').value = "";
+            document.getElementById('rapidApiKey').value = "";
+            document.getElementById('myVideoId').value = "";
+            document.getElementById('myVideoTitle').value = "";
+            myVideoData = {};
+            alert("✅ सभी सेटिंग्स क्लियर हो गईं!");
+        }
+
+        // HIDE/SHOW SECTION
+        function hideSection(id) {
+            if(!hiddenSections.includes(id)) hiddenSections.push(id);
+            localStorage.setItem("aryan_hidden_sections", JSON.stringify(hiddenSections));
+            applyHiddenSections();
+            renderHiddenSections();
+            // Auto open sidebar to show hidden list
+            document.getElementById('sidebar').classList.add('open');
+            document.getElementById('sidebarOverlay').style.display = 'block';
+        }
+
+        function showSection(id) {
+            hiddenSections = hiddenSections.filter(s => s !== id);
+            localStorage.setItem("aryan_hidden_sections", JSON.stringify(hiddenSections));
+            applyHiddenSections();
+            renderHiddenSections();
+        }
+
+        function applyHiddenSections() {
+            ['sec_comp', 'sec_studio', 'sec_ai'].forEach(id => {
+                const el = document.getElementById(id);
+                if(!el) return;
+                if(hiddenSections.includes(id)) {
+                    el.classList.add('hidden-section');
+                } else {
+                    el.classList.remove('hidden-section');
+                }
+            });
+        }
+
+        function renderHiddenSections() {
+            const list = document.getElementById('hiddenSectionsList');
+            const items = document.getElementById('hiddenSectionsItems');
+            if(hiddenSections.length === 0) {
+                list.style.display = 'none';
+                return;
+            }
+            list.style.display = 'block';
+            items.innerHTML = hiddenSections.map(id => `
+                <div class="hidden-item">
+                    <span>🔒 ${SECTION_NAMES[id] || id}</span>
+                    <button onclick="showSection('${id}')">Show</button>
+                </div>
+            `).join('');
+        }
+
         const updateCompBadge = () => { document.getElementById('compCount').innerText = `${competitors.length} Channels`; };
+
+        function saveMyVideoData() {
+            const id = document.getElementById('myVideoId').value.trim();
+            const title = document.getElementById('myVideoTitle').value.trim();
+            let cleanId = id;
+            if(id.includes('watch?v=')) cleanId = id.split('watch?v=')[1].split('&')[0];
+            if(id.includes('youtu.be/')) cleanId = id.split('youtu.be/')[1].split('?')[0];
+            myVideoData = { id: cleanId, title };
+            localStorage.setItem("aryan_my_video", JSON.stringify(myVideoData));
+            alert("✅ आपकी वीडियो सेव हो गई! कंपीटीटर के वीडियो के नीचे और search में दिखेगी।");
+        }
 
         // LIVE COUNTING FUNCTION FOR INPUT DATA
         function updateWordAndCharCounts() {
-            // 1. Title Count
             const titleText = document.getElementById('origTitleVal').innerText.trim();
             if (titleText && !titleText.includes("वीडियो लिस्ट में से")) {
                 const words = titleText.split(/\s+/).filter(Boolean).length;
@@ -434,7 +617,6 @@
                 document.getElementById('titleCountBadge').innerText = `0 शब्द | 0 अक्षर`;
             }
 
-            // 2. Tags Count
             const tagsText = document.getElementById('origTagsVal').innerText.trim();
             if (tagsText && !tagsText.includes("लोड होंगे") && !tagsText.includes("⏳")) {
                 const tagList = tagsText.split(',').map(s => s.trim()).filter(Boolean);
@@ -443,7 +625,6 @@
                 document.getElementById('tagsCountBadge').innerText = `0 टैग्स`;
             }
 
-            // 3. Description Count
             const descText = document.getElementById('origDescVal').innerText.trim();
             if (descText && !descText.includes("लोड होगा") && !descText.includes("⏳")) {
                 const words = descText.split(/\s+/).filter(Boolean).length;
@@ -452,20 +633,18 @@
                 document.getElementById('descCountBadge').innerText = `0 शब्द | 0 अक्षर`;
             }
 
-            // 4. Script / Transcript Count
             const scriptText = document.getElementById('origScriptVal').innerText.trim();
             if (scriptText && !scriptText.includes("नीचे") && !scriptText.includes("⏳") && !scriptText.includes("कोई सबटाइटल नहीं")) {
                 const words = scriptText.split(/\s+/).filter(Boolean).length;
-                const minutes = Math.max(1, Math.round(words / 130)); // Speech rate: ~130 words/min
+                const minutes = Math.max(1, Math.round(words / 130));
                 document.getElementById('scriptCountBadge').innerText = `${words} शब्द (~${minutes} मिनट) | ${scriptText.length} अक्षर`;
             } else {
                 document.getElementById('scriptCountBadge').innerText = `0 शब्द | 0 अक्षर`;
             }
+            updateGeminiBtnLabel();
         }
 
-        // LIVE COUNTING FUNCTION FOR AI GENERATED OUTPUTS
         function updateAiOutputCounts() {
-            // 1. AI Title
             const tText = document.getElementById('aiTitleOut').innerText.trim();
             if (tText) {
                 const words = tText.split(/\s+/).filter(Boolean).length;
@@ -474,7 +653,6 @@
                 document.getElementById('aiTitleCountBadge').innerText = `0 शब्द | 0 अक्षर`;
             }
 
-            // 2. AI Script
             const sText = document.getElementById('aiScriptOut').innerText.trim();
             if (sText) {
                 const words = sText.split(/\s+/).filter(Boolean).length;
@@ -484,7 +662,6 @@
                 document.getElementById('aiScriptCountBadge').innerText = `0 शब्द | 0 अक्षर`;
             }
 
-            // 3. AI Description
             const dText = document.getElementById('aiDescOut').innerText.trim();
             if (dText) {
                 const words = dText.split(/\s+/).filter(Boolean).length;
@@ -493,7 +670,6 @@
                 document.getElementById('aiDescCountBadge').innerText = `0 शब्द | 0 अक्षर`;
             }
 
-            // 4. AI Tags
             const tgText = document.getElementById('aiTagsOut').innerText.trim();
             if (tgText) {
                 const tagList = tgText.split(',').map(s => s.trim()).filter(Boolean);
@@ -505,7 +681,10 @@
 
         function extractHandle(str) {
             const m = str.trim().match(/@([a-zA-Z0-9_.-]+)/);
-            return m ? '@' + m[1] : '@' + str.trim().replace(/^@/, '');
+            if(m) return '@' + m[1];
+            if(str.includes('/channel/')) return str.split('/channel/')[1].split('/')[0];
+            if(str.includes('/@')) return '@' + str.split('/@')[1].split('/')[0];
+            return '@' + str.trim().replace(/^@/, '');
         }
 
         function addCompetitor() {
@@ -549,6 +728,49 @@
             }
         }
 
+        async function fetchChannelLogo(handle) {
+            // Try cache first
+            if(channelCache[handle] && channelCache[handle].logo) return channelCache[handle].logo;
+
+            // Try multiple sources
+            const ytWorkerUrl = localStorage.getItem("yt_api_url") || YT_WORKER;
+            const ytApiKey = localStorage.getItem("myYtDataApiKey") || "";
+
+            try {
+                // Method 1: Worker channel info
+                const res = await fetch(`${ytWorkerUrl}/?channel_id=${encodeURIComponent(handle)}`);
+                if(res.ok) {
+                    const text = await res.text();
+                    const m = text.match(/https:\/\/yt3\.g\.gg\.com\/[^"'\s]+/i) || text.match(/https:\/\/yt3\.googleusercontent\.com\/[^"'\s]+/i);
+                    if(m) {
+                        channelCache[handle] = { ...(channelCache[handle] || {}), logo: m[0] };
+                        localStorage.setItem("aryan_channel_cache", JSON.stringify(channelCache));
+                        return m[0];
+                    }
+                }
+            } catch(e) {}
+
+            // Method 2: Direct YouTube fetch
+            try {
+                const cleanHandle = handle.replace('@','');
+                const res = await fetch(`https://www.youtube.com/@${cleanHandle}`, {
+                    headers: { 'User-Agent': 'Mozilla/5.0' }
+                });
+                if(res.ok) {
+                    const html = await res.text();
+                    const m = html.match(/https:\/\/yt3\.(?:gg|googleusercontent)\.com\/[^"'\s)]+/i);
+                    if(m) {
+                        channelCache[handle] = { ...(channelCache[handle] || {}), logo: m[0] };
+                        localStorage.setItem("aryan_channel_cache", JSON.stringify(channelCache));
+                        return m[0];
+                    }
+                }
+            } catch(e) {}
+
+            // Method 3: unavatar.io (gravatar-like fallback)
+            return `https://unavatar.io/youtube/${handle.replace('@','')}?fallback=https://ui-avatars.com/api/?name=${encodeURIComponent(handle)}&size=96&background=334155&color=fff`;
+        }
+
         async function loadAllChannels() {
             const container = document.getElementById('channelsContainer');
             if(competitors.length === 0) {
@@ -556,15 +778,19 @@
                 return;
             }
             container.innerHTML = '';
-            for(let handle of competitors) {
+            competitors.forEach((handle, idx) => {
                 const safeId = 'ch_' + handle.replace('@','').replace(/[^a-zA-Z0-9]/g,'_');
+                const colorClass = `color-${idx % 8}`;
+                const logo = (channelCache[handle] && channelCache[handle].logo) || '';
                 container.innerHTML += `
-                    <div class="channel-card" id="${safeId}">
+                    <div class="channel-card ${colorClass}" id="${safeId}">
                         <div class="channel-top">
                             <div class="channel-title">
-                                <span class="material-icons-round" style="color:var(--primary); font-size:20px;">account_circle</span>
-                                <span>${handle}</span>
-                                <small style="color:#10b981; font-size:0.68rem; font-weight:800; background:rgba(16,185,129,0.15); padding:2px 6px; border-radius:4px;">(Live 72h)</small>
+                                <img src="${logo || 'https://ui-avatars.com/api/?name='+encodeURIComponent(handle)+'&size=96&background=334155&color=fff'}" class="channel-logo" onerror="this.src='https://ui-avatars.com/api/?name='+encodeURIComponent(handle)+'&size=96&background=334155&color=fff'">
+                                <div class="channel-name-wrap">
+                                    <span>${handle}</span>
+                                    <small>🟢 Live • Auto-refresh 60s</small>
+                                </div>
                             </div>
                             <button class="btn-del" onclick="removeCompetitor('${handle}')"><span class="material-icons-round" style="font-size:19px;">delete</span></button>
                         </div>
@@ -574,13 +800,24 @@
                     </div>
                 `;
                 fetchChannelVideos(handle, safeId);
-            }
+                fetchChannelLogo(handle).then(url => {
+                    const img = document.querySelector(`#${safeId} .channel-logo`);
+                    if(img && url) img.src = url;
+                });
+            });
         }
 
-        async function fetchChannelVideos(handle, safeId) {
+        async function fetchChannelVideos(handle, safeId, isRefresh = false) {
             const listEl = document.getElementById(`list_${safeId}`);
+            if(!listEl) return;
             const ytWorker = localStorage.getItem("yt_api_url") || YT_WORKER;
             let items = [];
+            let oldFirstVideoId = null;
+
+            // Get previous first video to detect NEW uploads
+            if(channelCache[handle] && channelCache[handle].firstVideoId) {
+                oldFirstVideoId = channelCache[handle].firstVideoId;
+            }
 
             try {
                 const res = await fetch(`${ytWorker}/?channel_id=${encodeURIComponent(handle)}`);
@@ -590,46 +827,82 @@
                         const parser = new DOMParser();
                         const xml = parser.parseFromString(text, "text/xml");
                         const entries = xml.getElementsByTagName("entry");
-                        for(let i=0; i<Math.min(8, entries.length); i++) {
+                        for(let i=0; i<Math.min(10, entries.length); i++) {
                             const title = entries[i].getElementsByTagName("title")[0]?.textContent || 'No Title';
                             const vid = entries[i].getElementsByTagName("yt:videoId")[0]?.textContent;
                             const publishedRaw = entries[i].getElementsByTagName("published")[0]?.textContent || entries[i].getElementsByTagName("updated")[0]?.textContent || '';
-                            if(vid) items.push({ title, videoId: vid, published: calculateTimeAgo(publishedRaw) });
+                            if(vid) items.push({ title, videoId: vid, published: calculateTimeAgo(publishedRaw), publishedRaw });
                         }
                     } else {
                         const json = JSON.parse(text);
                         if(json.items) {
                             items = json.items.map(item => ({
                                 title: item.title,
-                                videoId: item.videoId,
-                                published: calculateTimeAgo(item.published || item.publishedAt || item.time)
+                                videoId: item.videoId || item.id,
+                                published: calculateTimeAgo(item.published || item.publishedAt || item.time),
+                                publishedRaw: item.published || item.publishedAt || item.time
                             }));
                         }
                     }
                 }
-            } catch(e) {}
+            } catch(e) { console.error('Channel fetch error:', e); }
 
             if(items.length > 0) {
+                // Save latest first video ID for NEW detection
+                channelCache[handle] = { ...(channelCache[handle] || {}), firstVideoId: items[0].videoId };
+                localStorage.setItem("aryan_channel_cache", JSON.stringify(channelCache));
+
                 let html = '';
-                items.forEach(v => {
+                items.forEach((v, idx) => {
                     const safeTitle = encodeURIComponent(v.title);
+                    const isNew = oldFirstVideoId && v.videoId !== oldFirstVideoId && idx === 0 && isRefresh;
                     html += `
-                        <div class="video-item" onclick="selectVideo('${v.videoId}', '${safeTitle}', '${encodeURIComponent(handle)}')">
+                        <div class="video-item ${isNew ? 'new-video' : ''}" onclick="selectVideo('${v.videoId}', '${safeTitle}', '${encodeURIComponent(handle)}')">
                             <img src="https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg" class="video-thumb" onerror="this.src='https://via.placeholder.com/98x56/1e293b/3b82f6?text=News'">
                             <div class="video-info">
-                                <h4>${v.title}</h4>
+                                <h4>${v.title}${isNew ? '<span class="new-badge">NEW</span>' : ''}</h4>
                                 <small><span class="material-icons-round" style="font-size:13px;">schedule</span> ${v.published}</small>
                             </div>
                         </div>
                     `;
                 });
+
+                // Add my video as "Related/Suggested" at the end
+                if(myVideoData.id && myVideoData.title) {
+                    html += `
+                        <div style="font-size:0.72rem; color:#10b981; font-weight:800; margin-top:8px; padding:4px 0; border-top:1px dashed rgba(16,185,129,0.3);">▶ मेरी रिलेटेड वीडियो (Related Search)</div>
+                        <div class="video-item" onclick="window.open('https://www.youtube.com/watch?v=${myVideoData.id}', '_blank')" style="border-color: rgba(16,185,129,0.4);">
+                            <img src="https://i.ytimg.com/vi/${myVideoData.id}/hqdefault.jpg" class="video-thumb" onerror="this.src='https://via.placeholder.com/98x56/10b981/fff?text=My+Video'">
+                            <div class="video-info">
+                                <h4>${myVideoData.title || 'मेरी वीडियो'}</h4>
+                                <small style="color:#10b981;"><span class="material-icons-round" style="font-size:13px;">verified</span> मेरा चैनल</small>
+                            </div>
+                        </div>
+                    `;
+                }
+
                 listEl.innerHTML = html;
+
+                // Notification for new video
+                if(isNew) {
+                    try {
+                        if(Notification.permission === 'granted') {
+                            new Notification('🆕 नई वीडियो अपलोड!', {
+                                body: `${handle} ने अभी-अभी वीडियो अपलोड की: ${items[0].title.substring(0, 50)}`,
+                                icon: 'https://ui-avatars.com/api/?name='+encodeURIComponent(handle)+'&size=96'
+                            });
+                        }
+                    } catch(e) {}
+                }
             } else {
                 listEl.innerHTML = `<div style="font-size:0.78rem; color:#f87171; padding:6px;">वीडियो लोड नहीं हो सके। <button onclick="fetchChannelVideos('${handle}','${safeId}')" style="background:none; border:none; color:var(--primary); cursor:pointer; text-decoration:underline;">रीट्राई</button></div>`;
             }
         }
 
-        // DYNAMIC BUTTON LABEL UPDATE
+        async function refreshChannelVideos(handle, safeId, silent) {
+            await fetchChannelVideos(handle, safeId, true);
+        }
+
         function updateGeminiBtnLabel() {
             const title = document.getElementById('origTitleVal')?.innerText || '';
             const tags = document.getElementById('origTagsVal')?.innerText || '';
@@ -637,24 +910,38 @@
             const script = document.getElementById('origScriptVal')?.innerText || '';
 
             let parts = [];
-            if (title && !title.includes('वीडियो लिस्ट में से')) parts.push('Title');
-            if (tags && !tags.includes('लोड होंगे') && !tags.includes('⏳')) parts.push('Tags');
-            if (desc && !desc.includes('लोड होगा') && !desc.includes('⏳')) parts.push('Desc');
-            
+            const pills = [];
+
+            if (title && !title.includes('वीडियो लिस्ट में से')) {
+                parts.push('Title');
+                pills.push('<span class="data-source-pill">📌 Title</span>');
+            }
+            if (tags && !tags.includes('लोड होंगे') && !tags.includes('⏳')) {
+                parts.push('Tags');
+                pills.push('<span class="data-source-pill">🏷️ Tags</span>');
+            }
+            if (desc && !desc.includes('लोड होगा') && !desc.includes('⏳')) {
+                parts.push('Desc');
+                pills.push('<span class="data-source-pill">📄 Desc</span>');
+            }
+
             if (script && !script.includes('नीचे') && !script.includes('⏳') && !script.includes('कोई सबटाइटल नहीं')) {
                 const words = script.split(/\s+/).filter(Boolean).length;
                 const minutes = Math.max(1, Math.round(words / 130));
                 parts.push(`Script (~${minutes} मिनट)`);
+                pills.push(`<span class="data-source-pill">🎙️ Script (~${minutes} मिनट)</span>`);
             }
 
             const labelStr = parts.length > 0 ? parts.join(' + ') : 'Title';
             const btn = document.getElementById('btnAiGen');
-            if(btn) {
-                btn.innerHTML = `<span class="material-icons-round">auto_awesome</span> जेमिनी AI से पूरी लेंथ की स्क्रिप्ट जनरेट करें (${labelStr})`;
+            const btnText = document.getElementById('btnAiGenText');
+            const pillsEl = document.getElementById('dataSourcePills');
+            if(btn && btnText && pillsEl) {
+                btnText.innerText = `जेमिनी AI से पूरी लेंथ की स्क्रिप्ट जनरेट करें (${labelStr})`;
+                pillsEl.innerHTML = pills.length > 0 ? pills.join('') : '';
             }
         }
 
-        // SELECT VIDEO
         async function selectVideo(videoId, encodedTitle, encodedChannel) {
             const title = decodeURIComponent(encodedTitle);
             const channel = decodeURIComponent(encodedChannel);
@@ -673,16 +960,20 @@
             pWrap.style.display = "block";
             document.getElementById('ytIframe').src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
 
-            document.getElementById('studioWorkArea').scrollIntoView({ behavior: 'smooth' });
+            // Open Studio section if hidden
+            if(hiddenSections.includes('sec_studio')) {
+                showSection('sec_studio');
+            }
+            const studioEl = document.getElementById('sec_studio');
+            if(studioEl && !studioEl.hasAttribute('open')) studioEl.setAttribute('open','');
+            studioEl.scrollIntoView({ behavior: 'smooth' });
 
             updateWordAndCharCounts();
             updateGeminiBtnLabel();
 
-            // FETCH METADATA
             fetchAllVideoMetadata(videoId, title);
         }
 
-        // FETCH REAL YOUTUBE METADATA (WORKER V7 LIVE ENGINE & OFFICIAL API V3)
         async function fetchAllVideoMetadata(videoId, titleFallback) {
             const tagBox = document.getElementById('origTagsVal');
             const descBox = document.getElementById('origDescVal');
@@ -697,7 +988,7 @@
             const ytWorkerUrl = localStorage.getItem("yt_api_url") || YT_WORKER;
             const ytApiKey = localStorage.getItem("myYtDataApiKey") || "";
 
-            // METHOD 1: WORKER V7 LIVE ENGINE (DEFAULT)
+            // METHOD 1: WORKER V7 LIVE ENGINE
             if (engineMode === "worker" || !ytApiKey) {
                 try {
                     const queryUrls = [
@@ -711,19 +1002,37 @@
                         try {
                             const res = await fetch(u);
                             if (res.ok) {
-                                const data = await res.json();
-                                if (realTags.length === 0) {
-                                    if (data.tags && Array.isArray(data.tags)) realTags = data.tags;
-                                    else if (data.keywords && Array.isArray(data.keywords)) realTags = data.keywords;
+                                let data;
+                                const contentType = res.headers.get('content-type') || '';
+                                if(contentType.includes('xml')) {
+                                    const text = await res.text();
+                                    // Parse XML to extract desc/tags
+                                    const parser = new DOMParser();
+                                    const xml = parser.parseFromString(text, 'text/xml');
+                                    const desc = xml.getElementsByTagName('description')[0]?.textContent;
+                                    const kw = xml.getElementsByTagName('media:keywords')[0]?.textContent || xml.getElementsByTagName('keywords')[0]?.textContent;
+                                    if(desc) realDesc = desc.trim();
+                                    if(kw) realTags = kw.split(',').map(s=>s.trim()).filter(Boolean);
+                                } else {
+                                    data = await res.json();
+                                    // Tags
+                                    if (realTags.length === 0) {
+                                        if (data.tags && Array.isArray(data.tags)) realTags = data.tags;
+                                        else if (data.keywords && Array.isArray(data.keywords)) realTags = data.keywords;
+                                        else if (data.keywords && typeof data.keywords === 'string') realTags = data.keywords.split(',').map(s=>s.trim()).filter(Boolean);
+                                    }
+                                    // Description
+                                    if (realDesc.length === 0) {
+                                        if (data.desc && typeof data.desc === 'string') realDesc = data.desc.trim();
+                                        else if (data.description && typeof data.description === 'string') realDesc = data.description.trim();
+                                        else if (data.shortDescription && typeof data.shortDescription === 'string') realDesc = data.shortDescription.trim();
+                                    }
+                                    // Transcript
+                                    if (data.transcript && typeof data.transcript === 'string' && data.transcript.trim().length > 10) {
+                                        document.getElementById('origScriptVal').innerText = data.transcript.trim();
+                                    }
                                 }
-                                if (realDesc.length === 0) {
-                                    if (data.desc && typeof data.desc === 'string') realDesc = data.desc.trim();
-                                    else if (data.description && typeof data.description === 'string') realDesc = data.description.trim();
-                                }
-                                if (data.transcript && data.transcript.trim().length > 10) {
-                                    document.getElementById('origScriptVal').innerText = data.transcript.trim();
-                                }
-                                if (realDesc.length > 10) break;
+                                if (realDesc.length > 10 && realTags.length > 0) break;
                             }
                         } catch(e) {}
                     }
@@ -731,16 +1040,16 @@
             }
 
             // METHOD 2: OFFICIAL YOUTUBE DATA API V3
-            if (realDesc.length === 0 && ytApiKey.length > 10) {
+            if ((realDesc.length === 0 || realTags.length === 0) && ytApiKey.length > 10) {
                 try {
-                    const apiUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${ytApiKey}`;
+                    const apiUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${videoId}&key=${ytApiKey}`;
                     const res = await fetch(apiUrl);
                     if (res.ok) {
                         const json = await res.json();
                         if (json.items && json.items.length > 0) {
                             const snippet = json.items[0].snippet;
-                            if (snippet.tags) realTags = snippet.tags;
-                            if (snippet.description) realDesc = snippet.description;
+                            if (snippet.tags && realTags.length === 0) realTags = snippet.tags;
+                            if (snippet.description && realDesc.length === 0) realDesc = snippet.description;
                         }
                     }
                 } catch(e) {}
@@ -768,15 +1077,20 @@
             updateGeminiBtnLabel();
         }
 
-        // EXTRACT TRANSCRIPT (WORKER V7 / RAPIDAPI MULTI-LANG AUTO FALLBACK)
         async function extractTranscript() {
             const videoId = document.getElementById('currentVideoId').value;
             const videoUrl = document.getElementById('vidUrlVal').value;
-            const mode = document.getElementById('transcriptModeSelect').value;
             const btn = document.getElementById('btnExtractScript');
             const scriptBox = document.getElementById('origScriptVal');
 
             if(!videoId) return alert("⚠️ कृपया पहले लिस्ट से कोई वीडियो चुनें!");
+
+            const rapidKey = localStorage.getItem("myRapidApiKey");
+            if(!rapidKey) {
+                toggleSidebar();
+                alert("⚠️ कृपया सेटिंग्स (⚙️) में जाकर अपनी RapidAPI Key डालें!");
+                return;
+            }
 
             const originalBtnHtml = btn.innerHTML;
             btn.disabled = true;
@@ -784,57 +1098,33 @@
             scriptBox.innerText = "⏳ स्क्रिप्ट निकाली जा रही है, कृपया प्रतीक्षा करें...";
 
             let finalTranscript = "";
-
-            if (mode === "worker") {
-                const ytWorker = localStorage.getItem("yt_api_url") || YT_WORKER;
+            const langVariants = ['hi', 'en', ''];
+            for (let lang of langVariants) {
                 try {
-                    const res = await fetch(`${ytWorker}/?videoId=${videoId}`);
-                    if(res.ok) {
-                        const data = await res.json();
-                        if(data.transcript && data.transcript.trim().length > 10) {
-                            finalTranscript = data.transcript.trim();
+                    let langQuery = lang ? `&lang=${lang}` : '';
+                    let rapidEndpoint = `https://youtube-transcript3.p.rapidapi.com/api/transcript-with-url?url=${encodeURIComponent(videoUrl)}&flat_text=true${langQuery}`;
+                    let res = await fetch(rapidEndpoint, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-rapidapi-host': 'youtube-transcript3.p.rapidapi.com',
+                            'x-rapidapi-key': rapidKey
+                        }
+                    });
+                    if (res.ok) {
+                        let json = await res.json();
+                        let txt = "";
+                        if (typeof json.transcript === 'string') txt = json.transcript;
+                        else if (Array.isArray(json.transcript)) txt = json.transcript.map(t => t.text || t).join(' ');
+                        else if (typeof json.data === 'string') txt = json.data;
+                        else if (Array.isArray(json.data)) txt = json.data.map(t => t.text || t).join(' ');
+
+                        if (txt && txt.trim().length > 10) {
+                            finalTranscript = txt.trim();
+                            break;
                         }
                     }
                 } catch(e) {}
-            } else if (mode === "rapid") {
-                const rapidKey = localStorage.getItem("myRapidApiKey");
-                if(!rapidKey) {
-                    btn.disabled = false;
-                    btn.innerHTML = originalBtnHtml;
-                    toggleSidebar();
-                    alert("⚠️ कृपया सेटिंग्स (⚙️) में जाकर अपनी RapidAPI Key डालें!");
-                    return;
-                }
-
-                // RapidAPI Multi-Language Fallback (Hindi -> English -> Auto)
-                const langVariants = ['hi', 'en', ''];
-                for (let lang of langVariants) {
-                    try {
-                        let langQuery = lang ? `&lang=${lang}` : '';
-                        let rapidEndpoint = `https://youtube-transcript3.p.rapidapi.com/api/transcript-with-url?url=${encodeURIComponent(videoUrl)}&flat_text=true${langQuery}`;
-                        let res = await fetch(rapidEndpoint, {
-                            method: 'GET',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'x-rapidapi-host': 'youtube-transcript3.p.rapidapi.com',
-                                'x-rapidapi-key': rapidKey
-                            }
-                        });
-                        if (res.ok) {
-                            let json = await res.json();
-                            let txt = "";
-                            if (typeof json.transcript === 'string') txt = json.transcript;
-                            else if (Array.isArray(json.transcript)) txt = json.transcript.map(t => t.text || t).join(' ');
-                            else if (typeof json.data === 'string') txt = json.data;
-                            else if (Array.isArray(json.data)) txt = json.data.map(t => t.text || t).join(' ');
-
-                            if (txt && txt.trim().length > 10) {
-                                finalTranscript = txt.trim();
-                                break;
-                            }
-                        }
-                    } catch(e) {}
-                }
             }
 
             btn.disabled = false;
@@ -850,12 +1140,11 @@
             updateGeminiBtnLabel();
         }
 
-        // STRICT TEXT SANITIZER PREVENTS JSON BREAKING & GEMINI 400 ERRORS
         function sanitizeTextForAI(str) {
             if (!str) return "";
             return str
-                .replace(/\[.*?\]/g, "")             // Remove [संगीत], [Music], [Laughter]
-                .replace(/[\u0000-\u001F\u007F-\u009F]/g, " ") // Remove control chars
+                .replace(/\[.*?\]/g, "")
+                .replace(/[\u0000-\u001F\u007F-\u009F]/g, " ")
                 .replace(/\\/g, "/")
                 .replace(/"/g, "'")
                 .replace(/`/g, "'")
@@ -864,14 +1153,28 @@
                 .trim();
         }
 
-        // GEMINI AI MASTER GENERATOR (GUARANTEED NO 400 ERROR)
+        // Analyze speaking style from transcript
+        function analyzeSpeakingStyle(text) {
+            if(!text || text.length < 50) return "सामान्य न्यूज़ लहजा";
+            const features = [];
+            if((text.match(/!/g) || []).length > 5) features.push("उत्साहपूर्ण/energetic");
+            if((text.match(/\?/g) || []).length > 3) features.push("सवाल पूछने वाला/questioning");
+            if(text.includes("नमस्कार") || text.includes("दोस्तों")) features.push("दर्शकों से सीधा जुड़ाव");
+            if(text.includes("ध्यान दें") || text.includes("जरूरी")) features.push("गंभीर/serious");
+            if(text.includes("मज़ेदार") || text.includes("है न")) features.push("हल्का-फुल्का");
+            const avgSentence = text.split(/[।.!?]/).filter(Boolean).reduce((a,s)=>a+s.length,0) / Math.max(1, text.split(/[।.!?]/).filter(Boolean).length);
+            if(avgSentence > 150) features.push("लंबे वाक्य/descriptive");
+            else if(avgSentence < 60) features.push("छोटे-तेज़ वाक्य/punchy");
+            return features.length > 0 ? features.join(", ") : "सामान्य न्यूज़ anchor लहजा";
+        }
+
         async function generateAiScriptMaster() {
             const rawTitle = document.getElementById('origTitleVal').innerText.trim();
             const rawChannel = document.getElementById('currentSelectedChannel').value.trim();
             const rawTags = document.getElementById('origTagsVal').innerText.trim();
             const rawDesc = document.getElementById('origDescVal').innerText.trim();
             const rawScript = document.getElementById('origScriptVal').innerText.trim();
-            
+
             const selectedGeminiEngine = document.getElementById('geminiEngineSelect').value;
             const userGeminiKey = localStorage.getItem("myGeminiApiKey") || "";
             const geminiWorkerUrl = localStorage.getItem("gemini_api_url") || GEMINI_WORKER;
@@ -885,14 +1188,16 @@
             btn.disabled = true;
             btn.innerHTML = `<span class="btn-spinner"></span> जेमिनी AI पूरी लेंथ की स्क्रिप्ट लिख रहा है...`;
 
-            // Sanitize all inputs to prevent JSON parsing break
             const cleanTitle = sanitizeTextForAI(rawTitle);
             const cleanChannel = sanitizeTextForAI(rawChannel);
-            let cleanTags = rawTags.includes('लोड होंगे') || rawTags.includes('⏳') ? "" : sanitizeTextForAI(rawTags).substring(0, 400);
-            let cleanDesc = rawDesc.includes('लोड होगा') || rawDesc.includes('⏳') ? "" : sanitizeTextForAI(rawDesc).substring(0, 1200);
-            let cleanScript = rawScript.includes('नीचे') || rawScript.includes('⏳') || rawScript.includes('कोई सबटाइटल नहीं') ? "" : sanitizeTextForAI(rawScript);
+            const hasRealTags = rawTags && !rawTags.includes('लोड होंगे') && !rawTags.includes('⏳');
+            const hasRealDesc = rawDesc && !rawDesc.includes('लोड होगा') && !rawDesc.includes('⏳');
+            const hasRealScript = rawScript && !rawScript.includes('नीचे') && !rawScript.includes('⏳') && !rawScript.includes('कोई सबटाइटल नहीं');
 
-            // Calculate Target Length from extracted transcript
+            let cleanTags = hasRealTags ? sanitizeTextForAI(rawTags).substring(0, 600) : "";
+            let cleanDesc = hasRealDesc ? sanitizeTextForAI(rawDesc).substring(0, 1500) : "";
+            let cleanScript = hasRealScript ? sanitizeTextForAI(rawScript) : "";
+
             let targetWords = 400;
             let targetMinutes = 3;
             if (cleanScript.length > 50) {
@@ -900,26 +1205,47 @@
                 targetMinutes = Math.max(1, Math.round(targetWords / 130));
             }
 
+            // Analyze speaking style
+            const speakingStyle = analyzeSpeakingStyle(cleanScript);
+
+            // Build data source label
+            const dataSources = [];
+            if(cleanTitle) dataSources.push("Title");
+            if(hasRealTags) dataSources.push("Tags");
+            if(hasRealDesc) dataSources.push("Desc");
+            if(hasRealScript) dataSources.push(`Script(~${targetMinutes} मिनट)`);
+
             let promptText = `तुम DLS Bhai न्यूज़ स्टाइल के भारत के नंबर 1 हिंदी YouTube न्यूज़ स्क्रिप्ट राइटर हो।\n\n`;
             promptText += `[COMPETITOR DATA]:\n`;
             promptText += `- शीर्षक (Title): ${cleanTitle}\n`;
             if(cleanChannel) promptText += `- कंपीटीटर चैनल: ${cleanChannel}\n`;
-            if(cleanTags) promptText += `- कंपीटीटर टैग्स (Tags): ${cleanTags}\n`;
-            if(cleanDesc) promptText += `- ओरिजिनल पूरा विवरण (Desc): ${cleanDesc}\n`;
-            if(cleanScript) promptText += `- ओरिजिनल ट्रांसक्रिप्ट (Script): ${cleanScript.substring(0, 5000)}\n`;
+            if(hasRealTags) promptText += `- कंपीटीटर टैग्स (Tags): ${cleanTags}\n`;
+            if(hasRealDesc) promptText += `- ओरिजिनल पूरा विवरण (Desc): ${cleanDesc}\n`;
+            if(hasRealScript) {
+                promptText += `- ओरिजिनल ट्रांसक्रिप्ट (Script): ${cleanScript.substring(0, 5500)}\n`;
+                promptText += `- ओरिजिनल बोलने का लहजा (Speaking Style): ${speakingStyle}\n`;
+            }
+
+            if(myVideoData.id && myVideoData.title) {
+                promptText += `\n[MY VIDEO FOR SUGGESTION HIJACK]:\n`;
+                promptText += `- मेरी वीडियो ID: ${myVideoData.id}\n`;
+                promptText += `- मेरी वीडियो टाइटल: ${myVideoData.title}\n`;
+                promptText += `- इसे Description और Tags में natural तरीके से शामिल करें ताकि कंपीटीटर की वीडियो के नीचे मेरी वीडियो suggestion में आए और कंपीटीटर के चैनल नाम को search करने पर भी मेरी वीडियो top पर आए।\n`;
+            }
 
             promptText += `\n[CRITICAL LENGTH & STYLE INSTRUCTION]:
-1. ओरिजिनल स्क्रिप्ट में लगभग ${targetWords} शब्द हैं (लगभग ${targetMinutes} मिनट का भाषण)। तुम्हें किसी भी जानकारी को संक्षिप्त (Short) नहीं करना है। बिल्कुल उसी लंबाई के बराबर लगभग ${targetWords} शब्दों की पूरी ${targetMinutes} मिनट लंबी विस्तृत वॉइसओवर स्क्रिप्ट लिखो।
+1. ${hasRealScript ? `ओरिजिनल स्क्रिप्ट में लगभग ${targetWords} शब्द हैं (लगभग ${targetMinutes} मिनट का भाषण)। तुम्हें किसी भी जानकारी को संक्षिप्त (Short) नहीं करना है। बिल्कुल उसी लंबाई के बराबर लगभग ${targetWords} शब्दों की पूरी ${targetMinutes} मिनट लंबी विस्तृत वॉइसओवर स्क्रिप्ट लिखो। लहजा/टोन बिल्कुल "${speakingStyle}" के जैसा होना चाहिए।` : `कम से कम 400 शब्दों की विस्तृत स्क्रिप्ट लिखो।`}
 2. स्वच्छ हिंदी स्क्रिप्ट (NO Markdown, NO Stars, NO Hash, NO Brackets)।
 3. शुरुआत "नमस्कार! आप देख रहे हैं आर्यन न्यूज़ टेक..." से करें।
+4. ${hasRealScript ? 'ओरिजिनल में जैसा बोलने का अंदाज है (energetic/serious/casual), बिल्कुल वैसा ही अंदाज रखो।' : 'DLS Bhai जैसा natural news anchor लहजा रखो।'}
 
 [OUTPUT STRUCTURE]:
 नीचे दिए गए 4 ब्लॉक्स में कंटेंट जनरेट करें:
 
 1. [NEW_TITLE]: 1-2 शब्द बदलकर नया वायरल टाइटल।
-2. [NEW_SCRIPT]: पूरे ${targetWords} शब्दों (~${targetMinutes} मिनट) की DLS Bhai शैली में वॉइसओवर स्क्रिप्ट।
-3. [NEW_DESC]: पूरा हाइजैक SEO विवरण (${cleanChannel || 'Competitor'} चैनल का नाम शामिल करें)।
-4. [NEW_TAGS]: वायरल टैग्स कॉमा से अलग।
+2. [NEW_SCRIPT]: पूरे ${targetWords} शब्दों (~${targetMinutes} मिनट) की DLS Bhai शैली में "${speakingStyle}" लहजे में वॉइसओवर स्क्रिप्ट।
+3. [NEW_DESC]: पूरा हाइजैक SEO विवरण (${cleanChannel || 'Competitor'} चैनल का नाम और ${myVideoData.title ? 'मेरी वीडियो ' + myVideoData.title : ''} को natural तरीके से शामिल करें ताकि search में top आए)।
+4. [NEW_TAGS]: वायरल टैग्स कॉमा से अलग (${myVideoData.title ? 'मेरी वीडियो के keywords, ' : ''}${cleanChannel || 'competitor'} के चैनल से related keywords, और competitor के सारे टैग्स भी शामिल करें ताकि search suggestion में आए)।
 
 [NEW_TITLE]
 (नया टाइटल)
@@ -936,7 +1262,6 @@
             try {
                 let res = null;
 
-                // STRATEGY 1: DIRECT GOOGLE GEMINI OFFICIAL API (IF SELECTED & KEY PROVIDED)
                 if (selectedGeminiEngine === "direct" && userGeminiKey.length > 10) {
                     try {
                         const directGeminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${userGeminiKey}`;
@@ -948,7 +1273,6 @@
                     } catch(e) {}
                 }
 
-                // STRATEGY 2: WORKER ENGINE FALLBACK (MULTI-PAYLOAD RETRY PREVENTS 400)
                 if (!res || !res.ok) {
                     let payloadVariants = [
                         { contents: [{ parts: [{ text: promptText }] }] },
@@ -992,22 +1316,26 @@
                 document.getElementById('aiDescOut').innerText = fDesc || rawDesc;
                 document.getElementById('aiTagsOut').innerText = fTags || rawTags;
 
-                // Update Counts for AI Output Cards
                 updateAiOutputCounts();
 
-                const resCard = document.getElementById('aiResultCard');
+                // Show AI result section (unhide if hidden)
+                if(hiddenSections.includes('sec_ai')) {
+                    showSection('sec_ai');
+                }
+                const resCard = document.getElementById('sec_ai');
                 resCard.style.display = "block";
+                if(!resCard.hasAttribute('open')) resCard.setAttribute('open','');
                 resCard.scrollIntoView({ behavior: 'smooth' });
 
             } catch(err) {
                 alert("❌ AI जनरेशन में त्रुटि:\n" + err.message);
             } finally {
                 btn.disabled = false;
+                btn.innerHTML = originalBtnHtml;
                 updateGeminiBtnLabel();
             }
         }
 
-        // UTILITY FUNCTIONS
         async function copyText(elementId, btn) {
             await executeClipboardCopy(document.getElementById(elementId).innerText, btn);
         }
@@ -1056,6 +1384,11 @@
             a.click();
             a.remove();
             URL.revokeObjectURL(url);
+        }
+
+        // Request notification permission for new video alerts
+        if('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
         }
     </script>
 </body>
